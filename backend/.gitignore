@@ -1,0 +1,19 @@
+# Ignore Python virtual environment
+backend/venv/
+
+# Node modules for frontend
+frontend/node_modules/
+
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+
+# OS/system files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment files
+.env
