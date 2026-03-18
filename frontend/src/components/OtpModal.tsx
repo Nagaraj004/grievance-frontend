@@ -224,7 +224,6 @@ const OtpInputBoxes = ({
     const digit = char.replace(/\D/g, "").slice(-1);
     const arr = value.split("");
     arr[index] = digit;
-    const next = arr.join("").padEnd(6, "").slice(0, 6).replace(/\s/g, "");
     onChange(arr.slice(0, 6).join("").replace(/[^0-9]/g, ""));
 
     if (digit && index < 5) {
