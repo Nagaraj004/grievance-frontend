@@ -6,6 +6,7 @@ type Props = {
   open: boolean;
   mobile: string;
   otp: string;
+  generatedOtp: string | null;
   setOtp: (v: string) => void;
   onVerify: () => void;
   onClose: () => void;
@@ -16,6 +17,7 @@ const OtpModal = ({
   open,
   mobile,
   otp,
+  generatedOtp,
   setOtp,
   onVerify,
   onClose,
@@ -47,9 +49,20 @@ const OtpModal = ({
               Verify Mobile Number
             </h2>
 
-            <p className="text-sm text-gray-500 mb-6">
-              Enter the OTP sent to <span className="font-semibold">{mobile}</span>
+            <p className="text-sm text-gray-500 mb-4">
+              OTP for{" "}
+              <span className="font-semibold">{mobile}</span>
             </p>
+
+            {/* Generated OTP Display */}
+            {generatedOtp && (
+              <div className="bg-primary-light border border-dashed border-primary rounded-xl px-4 py-3 mb-5 text-center">
+                <p className="text-xs text-gray-500 mb-1">Your OTP is</p>
+                <p className="text-3xl font-bold font-mono tracking-widest text-primary-dark">
+                  {generatedOtp}
+                </p>
+              </div>
+            )}
 
             <input
               type="text"

@@ -1,4 +1,3 @@
-
 import { useState, FormEvent, useRef } from "react";
 import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
@@ -20,12 +19,6 @@ import {
 import { useLang } from "../context/LangContext";
 import jsPDF from "jspdf";
 import OtpModal from "./OtpModal";
-import { grievanceService } from "../services/grievanceService";
-
-// const DEPARTMENTS: Department[] = [
-//   'Health','Education','Water Supply','Roads & Infrastructure',
-//   'Electricity','Revenue','Police','Agriculture','Housing','Social Welfare','Other'
-// ];
 
 const DEPARTMENTS = [
   { en: "Health", ta: "சுகாதாரம்" },
@@ -41,23 +34,30 @@ const DEPARTMENTS = [
   { en: "Other", ta: "மற்றவை" },
 ];
 
-
 const CONSTITUENCIES = [
   { en: "Karur", ta: "கரூர்" },
   { en: "Kulithalai", ta: "குளித்தலை" },
   { en: "Aravakurichi", ta: "அரவக்குறிச்சி" },
-  { en: "Krishnarayapuram", ta: "கிருஷ்ணராயபுரம்" }
+  { en: "Krishnarayapuram", ta: "கிருஷ்ணராயபுரம்" },
 ];
+
+/** Generate a random 6-digit OTP string */
+const generateOtp = () =>
+  Math.floor(100000 + Math.random() * 900000).toString();
 
 const GrievanceForm = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { loading, lastSubmitted } = useSelector((s: RootState) => s.grievance);
+  const { loading, lastSubmitted } = useSelector(
+    (s: RootState) => s.grievance
+  );
   const { t, lang } = useLang();
+
   const [otpModalOpen, setOtpModalOpen] = useState(false);
   const [otp, setOtp] = useState("");
+  const [generatedOtp, setGeneratedOtp] = useState<string | null>(null);
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
+
   const [form, setForm] = useState<SubmitGrievancePayload>({
     name: "",
     mobile: "",
@@ -82,9 +82,7 @@ const GrievanceForm = () => {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment" },
       });
-
       setCameraStream(stream);
-
       setTimeout(() => {
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -99,24 +97,18 @@ const GrievanceForm = () => {
 
   const capturePhoto = () => {
     if (!videoRef.current) return;
-
     const canvas = document.createElement("canvas");
     canvas.width = videoRef.current.videoWidth;
     canvas.height = videoRef.current.videoHeight;
-
     const ctx = canvas.getContext("2d");
     ctx?.drawImage(videoRef.current, 0, 0);
-
     canvas.toBlob((blob) => {
       if (!blob) return;
-
       const file = new File([blob], `camera-${Date.now()}.jpg`, {
         type: "image/jpeg",
       });
-
-      setSelectedFile(file); // ✅ updates UI
+      setSelectedFile(file);
     }, "image/jpeg");
-
     stopCamera();
   };
 
@@ -124,27 +116,15 @@ const GrievanceForm = () => {
     cameraStream?.getTracks().forEach((track) => track.stop());
     setCameraStream(null);
   };
- // ✅ FIXED sendOtp (reset OTP before opening modal)
-const sendOtp = async () => {
-  if (otpSent) {
-    setOtpModalOpen(true);
-    return;
-  }
 
-  try {
-    setOtpLoading(true);
-
-    await grievanceService.sendOtp(form.mobile);
-
+  /** Generate OTP locally and show it in the modal */
+  const sendOtp = () => {
+    const newOtp = generateOtp();
+    setGeneratedOtp(newOtp);
     setOtp("");
-    setOtpSent(true);   // ✅ track
     setOtpModalOpen(true);
-  } catch (err) {
-    alert("Failed to send OTP");
-  } finally {
-    setOtpLoading(false);
-  }
-};
+  };
+
   const validate = () => {
     const e: typeof errors = {};
     if (!form.name.trim()) e.name = t("nameRequired");
@@ -152,7 +132,8 @@ const sendOtp = async () => {
     if (!/\S+@\S+\.\S+/.test(form.email)) e.email = t("invalidEmail");
     if (!form.address.trim()) e.address = t("addressRequired");
     if (!form.constituency) e.constituency = t("constituencyRequired");
-    if (form.description.trim().length < 20) e.description = t("descTooShort");
+    if (form.description.trim().length < 20)
+      e.description = t("descTooShort");
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -160,12 +141,10 @@ const sendOtp = async () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     setFileError("");
-
     if (!file) {
       setSelectedFile(null);
       return;
     }
-
     const allowedTypes = [
       "application/pdf",
       "image/jpeg",
@@ -180,49 +159,45 @@ const sendOtp = async () => {
       e.target.value = "";
       return;
     }
-
     if (file.size > 5 * 1024 * 1024) {
       setFileError("File size must be less than 5MB");
       setSelectedFile(null);
       e.target.value = "";
       return;
     }
-
     setSelectedFile(file);
   };
-  // ✅ FIXED verifyOtp (REAL API CALL)
-const verifyOtp = async () => {
-  try {
+
+  /** Compare entered OTP against the locally generated one */
+  const verifyOtp = () => {
     setOtpLoading(true);
-
-    await grievanceService.verifyOtp(form.mobile, otp);
-
-    setOtpVerified(true);
-    setOtpModalOpen(false);
-  } catch (err) {
-    console.error("OTP verification failed", err);
-    alert("Invalid or expired OTP");
-  } finally {
-    setOtpLoading(false);
-  }
-};
- const handleSubmit = async (e: FormEvent) => {
-  e.preventDefault();
-
-  if (!validate()) return;
-
-  if (!otpVerified) {
-    await sendOtp();   // ✅ FIXED
-    return;
-  }
-
-  const payload: SubmitGrievancePayload = {
-    ...form,
-    attachment: selectedFile || undefined,
+    setTimeout(() => {
+      if (otp === generatedOtp) {
+        setOtpVerified(true);
+        setOtpModalOpen(false);
+      } else {
+        alert("Invalid OTP. Please try again.");
+      }
+      setOtpLoading(false);
+    }, 500); // small delay to mimic async feel
   };
 
-  dispatch(submitGrievance(payload));
-};
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    if (!otpVerified) {
+      sendOtp();
+      return;
+    }
+
+    const payload: SubmitGrievancePayload = {
+      ...form,
+      attachment: selectedFile || undefined,
+    };
+
+    dispatch(submitGrievance(payload));
+  };
 
   const handleCopy = () => {
     if (lastSubmitted) {
@@ -314,7 +289,7 @@ const verifyOtp = async () => {
     doc.setFontSize(9);
     const descLines = doc.splitTextToSize(
       lastSubmitted.description,
-      pageWidth - 2 * margin,
+      pageWidth - 2 * margin
     );
     doc.text(descLines, margin, yPos);
 
@@ -331,7 +306,7 @@ const verifyOtp = async () => {
     doc.text(
       "Please save this token number. You will need it to track your grievance status.",
       margin + 20,
-      yPos + 8,
+      yPos + 8
     );
 
     yPos += 30;
@@ -349,7 +324,7 @@ const verifyOtp = async () => {
       `Generated on ${new Date().toLocaleString()}`,
       pageWidth / 2,
       yPos + 5,
-      { align: "center" },
+      { align: "center" }
     );
     doc.save(`grievance_${lastSubmitted.token}.pdf`);
   };
@@ -393,18 +368,14 @@ const verifyOtp = async () => {
               {copied ? <FiCheck size={14} /> : <FiCopy size={14} />}
               {copied ? t("copied") : t("copyToken")}
             </button>
-
             <span className="text-gray-300">|</span>
-
             <button
               onClick={handleDownloadPDF}
               className="flex items-center gap-2 text-sm text-primary-dark hover:!text-primary-dark"
             >
               <FiDownload size={14} /> Download PDF
             </button>
-
             <span className="text-gray-300">|</span>
-
             <button
               onClick={handlePrint}
               className="flex items-center gap-2 text-sm text-primary-dark hover:!text-primary-dark"
@@ -430,7 +401,7 @@ const verifyOtp = async () => {
       onSubmit={handleSubmit}
       className="space-y-5"
     >
-      {/* Name, Mobile, Email, Address, Constituency */}
+      {/* Name, Mobile, Email, Constituency */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
           <label>{t("fullName")}*</label>
@@ -476,7 +447,9 @@ const verifyOtp = async () => {
           <select
             className={`input-field ${errors.constituency ? "border-primary-dark" : ""}`}
             value={form.constituency}
-            onChange={(e) => setForm({ ...form, constituency: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, constituency: e.target.value })
+            }
           >
             <option value="">{t("selectConstituency")}</option>
             {CONSTITUENCIES.map((c) => (
@@ -504,6 +477,7 @@ const verifyOtp = async () => {
           <p className="text-primary-dark text-xs">{errors.address}</p>
         )}
       </div>
+
       {/* Department */}
       <div className="flex flex-col gap-1.5">
         <label>{t("department")}</label>
@@ -561,7 +535,7 @@ const verifyOtp = async () => {
             onClick={() => {
               setSelectedFile(null);
               const input = document.getElementById(
-                "file-upload",
+                "file-upload"
               ) as HTMLInputElement;
               if (input) input.value = "";
             }}
@@ -570,7 +544,9 @@ const verifyOtp = async () => {
             <FiX size={18} />
           </button>
         )}
-        {fileError && <p className="text-primary-dark text-xs">{fileError}</p>}
+        {fileError && (
+          <p className="text-primary-dark text-xs">{fileError}</p>
+        )}
       </div>
 
       <div className="flex gap-3 mt-2">
@@ -582,6 +558,7 @@ const verifyOtp = async () => {
           📷 {t("openCamera")}
         </button>
       </div>
+
       {cameraStream && (
         <div className="mt-4 space-y-3">
           <video
@@ -590,21 +567,11 @@ const verifyOtp = async () => {
             playsInline
             className="w-full rounded-lg border"
           />
-
           <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={capturePhoto}
-              className="btn-primary"
-            >
+            <button type="button" onClick={capturePhoto} className="btn-primary">
               {t("capturePhoto")}
             </button>
-
-            <button
-              type="button"
-              onClick={stopCamera}
-              className="text-gray-500"
-            >
+            <button type="button" onClick={stopCamera} className="text-gray-500">
               {t("cancel")}
             </button>
           </div>
@@ -613,7 +580,6 @@ const verifyOtp = async () => {
 
       {selectedFile && (
         <div className="relative mt-3 w-fit">
-          {/* Image Preview */}
           {selectedFile.type.startsWith("image/") ? (
             <img
               src={URL.createObjectURL(selectedFile)}
@@ -625,8 +591,6 @@ const verifyOtp = async () => {
               {selectedFile.name}
             </div>
           )}
-
-          {/* Clear Button */}
           <button
             type="button"
             onClick={() => setSelectedFile(null)}
@@ -644,17 +608,19 @@ const verifyOtp = async () => {
       >
         {loading ? <Loader size="sm" /> : t("submitBtn2")}
       </button>
-       <OtpModal
-      open={otpModalOpen}
-      mobile={form.mobile}
-      otp={otp}
-      setOtp={setOtp}
-      onVerify={verifyOtp}
-      onClose={() => setOtpModalOpen(false)}
-      loading={otpLoading}
-    />
+
+      {/* OTP Modal — receives the generated OTP to display it */}
+      <OtpModal
+        open={otpModalOpen}
+        mobile={form.mobile}
+        otp={otp}
+        generatedOtp={generatedOtp}
+        setOtp={setOtp}
+        onVerify={verifyOtp}
+        onClose={() => setOtpModalOpen(false)}
+        loading={otpLoading}
+      />
     </motion.form>
-      
   );
 };
 
