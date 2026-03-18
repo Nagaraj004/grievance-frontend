@@ -133,12 +133,14 @@ const OtpModal = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            onClick={onClose}
           >
             <motion.div
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative"
+              onClick={(e) => e.stopPropagation()}
             >
               <button
                 onClick={onClose}
@@ -194,6 +196,14 @@ const OtpModal = ({
                 className="btn-primary w-full mt-5 flex items-center justify-center gap-2"
               >
                 {loading ? <Loader size="sm" /> : "Verify OTP"}
+              </button>
+
+              <button
+                onClick={onClose}
+                disabled={loading}
+                className="w-full mt-2 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                Cancel
               </button>
 
               <p className="text-xs text-gray-400 text-center mt-3">

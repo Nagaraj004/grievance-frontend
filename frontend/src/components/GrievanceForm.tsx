@@ -179,7 +179,7 @@ const GrievanceForm = () => {
         alert("Invalid OTP. Please try again.");
       }
       setOtpLoading(false);
-    }, 500); // small delay to mimic async feel
+    }, 500);
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -395,221 +395,223 @@ const GrievanceForm = () => {
   }
 
   return (
-    <motion.form
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      onSubmit={handleSubmit}
-      className="space-y-5"
-    >
-      {/* Name, Mobile, Email, Constituency */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="flex flex-col gap-1.5">
-          <label>{t("fullName")}*</label>
-          <input
-            className={`input-field ${errors.name ? "border-primary-dark" : ""}`}
-            placeholder={t("namePlaceholder")}
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
+    <>
+      <motion.form
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        onSubmit={handleSubmit}
+        className="space-y-5"
+      >
+        {/* Name, Mobile, Email, Constituency */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label>{t("fullName")}*</label>
+            <input
+              className={`input-field ${errors.name ? "border-primary-dark" : ""}`}
+              placeholder={t("namePlaceholder")}
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+            />
+            {errors.name && (
+              <p className="text-primary-dark text-xs">{errors.name}</p>
+            )}
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label>{t("mobileNumber")}*</label>
+            <input
+              type="tel"
+              className={`input-field ${errors.mobile ? "border-primary-dark" : ""}`}
+              placeholder={t("mobilePlaceholder")}
+              maxLength={10}
+              value={form.mobile}
+              onChange={(e) => setForm({ ...form, mobile: e.target.value })}
+            />
+            {errors.mobile && (
+              <p className="text-primary-dark text-xs">{errors.mobile}</p>
+            )}
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label>{t("emailAddress")}*</label>
+            <input
+              type="email"
+              className={`input-field ${errors.email ? "border-primary-dark" : ""}`}
+              placeholder={t("emailPlaceholder")}
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+            />
+            {errors.email && (
+              <p className="text-primary-dark text-xs">{errors.email}</p>
+            )}
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label>{t("constituency")}*</label>
+            <select
+              className={`input-field ${errors.constituency ? "border-primary-dark" : ""}`}
+              value={form.constituency}
+              onChange={(e) =>
+                setForm({ ...form, constituency: e.target.value })
+              }
+            >
+              <option value="">{t("selectConstituency")}</option>
+              {CONSTITUENCIES.map((c) => (
+                <option key={c.en} value={c.en}>
+                  {lang === "ta" ? c.ta : c.en}
+                </option>
+              ))}
+            </select>
+            {errors.constituency && (
+              <p className="text-primary-dark text-xs">{errors.constituency}</p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-1.5 sm:col-span-2">
+          <label>{t("address")}*</label>
+          <textarea
+            rows={3}
+            className={`input-field resize-none ${errors.address ? "border-primary-dark" : ""}`}
+            placeholder={t("addressPlaceholder")}
+            value={form.address}
+            onChange={(e) => setForm({ ...form, address: e.target.value })}
           />
-          {errors.name && (
-            <p className="text-primary-dark text-xs">{errors.name}</p>
+          {errors.address && (
+            <p className="text-primary-dark text-xs">{errors.address}</p>
           )}
         </div>
+
+        {/* Department */}
         <div className="flex flex-col gap-1.5">
-          <label>{t("mobileNumber")}*</label>
-          <input
-            type="tel"
-            className={`input-field ${errors.mobile ? "border-primary-dark" : ""}`}
-            placeholder={t("mobilePlaceholder")}
-            maxLength={10}
-            value={form.mobile}
-            onChange={(e) => setForm({ ...form, mobile: e.target.value })}
-          />
-          {errors.mobile && (
-            <p className="text-primary-dark text-xs">{errors.mobile}</p>
-          )}
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label>{t("emailAddress")}*</label>
-          <input
-            type="email"
-            className={`input-field ${errors.email ? "border-primary-dark" : ""}`}
-            placeholder={t("emailPlaceholder")}
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-          />
-          {errors.email && (
-            <p className="text-primary-dark text-xs">{errors.email}</p>
-          )}
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label>{t("constituency")}*</label>
+          <label>{t("department")}</label>
           <select
-            className={`input-field ${errors.constituency ? "border-primary-dark" : ""}`}
-            value={form.constituency}
+            className="input-field"
+            value={form.department}
             onChange={(e) =>
-              setForm({ ...form, constituency: e.target.value })
+              setForm({ ...form, department: e.target.value as Department })
             }
           >
-            <option value="">{t("selectConstituency")}</option>
-            {CONSTITUENCIES.map((c) => (
-              <option key={c.en} value={c.en}>
-                {lang === "ta" ? c.ta : c.en}
+            {DEPARTMENTS.map((d) => (
+              <option key={d.en} value={d.en}>
+                {lang === "ta" ? d.ta : d.en}
               </option>
             ))}
           </select>
-          {errors.constituency && (
-            <p className="text-primary-dark text-xs">{errors.constituency}</p>
+        </div>
+
+        {/* Description */}
+        <div className="flex flex-col gap-1.5">
+          <label>{t("describeYourProblem")}*</label>
+          <textarea
+            className={`input-field resize-none ${errors.description ? "border-primary-dark" : ""}`}
+            placeholder={t("descPlaceholder")}
+            rows={5}
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+          />
+          {errors.description && (
+            <p className="text-primary-dark text-xs">{errors.description}</p>
           )}
         </div>
-      </div>
 
-      <div className="flex flex-col gap-1.5 sm:col-span-2">
-        <label>{t("address")}*</label>
-        <textarea
-          rows={3}
-          className={`input-field resize-none ${errors.address ? "border-primary-dark" : ""}`}
-          placeholder={t("addressPlaceholder")}
-          value={form.address}
-          onChange={(e) => setForm({ ...form, address: e.target.value })}
-        />
-        {errors.address && (
-          <p className="text-primary-dark text-xs">{errors.address}</p>
-        )}
-      </div>
+        {/* File Upload */}
+        <div className="flex flex-col gap-1.5">
+          <label>{t("attachDocument")}</label>
+          <input
+            type="file"
+            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+            capture="environment"
+            className="hidden"
+            id="file-upload"
+            onChange={handleFileChange}
+          />
+          <label
+            htmlFor="file-upload"
+            className="input-field cursor-pointer flex items-center justify-between"
+          >
+            <span>{selectedFile ? selectedFile.name : t("chooseFile")}</span>
+            <FiUpload className="text-primary-dark" size={18} />
+          </label>
+          {selectedFile && (
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedFile(null);
+                const input = document.getElementById(
+                  "file-upload"
+                ) as HTMLInputElement;
+                if (input) input.value = "";
+              }}
+              className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary-dark"
+            >
+              <FiX size={18} />
+            </button>
+          )}
+          {fileError && (
+            <p className="text-primary-dark text-xs">{fileError}</p>
+          )}
+        </div>
 
-      {/* Department */}
-      <div className="flex flex-col gap-1.5">
-        <label>{t("department")}</label>
-        <select
-          className="input-field"
-          value={form.department}
-          onChange={(e) =>
-            setForm({ ...form, department: e.target.value as Department })
-          }
-        >
-          {DEPARTMENTS.map((d) => (
-            <option key={d.en} value={d.en}>
-              {lang === "ta" ? d.ta : d.en}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Description */}
-      <div className="flex flex-col gap-1.5">
-        <label>{t("describeYourProblem")}*</label>
-        <textarea
-          className={`input-field resize-none ${errors.description ? "border-primary-dark" : ""}`}
-          placeholder={t("descPlaceholder")}
-          rows={5}
-          value={form.description}
-          onChange={(e) => setForm({ ...form, description: e.target.value })}
-        />
-        {errors.description && (
-          <p className="text-primary-dark text-xs">{errors.description}</p>
-        )}
-      </div>
-
-      {/* File Upload */}
-      <div className="flex flex-col gap-1.5">
-        <label>{t("attachDocument")}</label>
-        <input
-          type="file"
-          accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-          capture="environment"
-          className="hidden"
-          id="file-upload"
-          onChange={handleFileChange}
-        />
-        <label
-          htmlFor="file-upload"
-          className="input-field cursor-pointer flex items-center justify-between"
-        >
-          <span>{selectedFile ? selectedFile.name : t("chooseFile")}</span>
-          <FiUpload className="text-primary-dark" size={18} />
-        </label>
-        {selectedFile && (
+        <div className="flex gap-3 mt-2">
           <button
             type="button"
-            onClick={() => {
-              setSelectedFile(null);
-              const input = document.getElementById(
-                "file-upload"
-              ) as HTMLInputElement;
-              if (input) input.value = "";
-            }}
-            className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary-dark"
+            onClick={startCamera}
+            className="flex items-center gap-2 text-sm text-primary-dark hover:text-primary"
           >
-            <FiX size={18} />
+            📷 {t("openCamera")}
           </button>
-        )}
-        {fileError && (
-          <p className="text-primary-dark text-xs">{fileError}</p>
-        )}
-      </div>
+        </div>
 
-      <div className="flex gap-3 mt-2">
-        <button
-          type="button"
-          onClick={startCamera}
-          className="flex items-center gap-2 text-sm text-primary-dark hover:text-primary"
-        >
-          📷 {t("openCamera")}
-        </button>
-      </div>
+        {cameraStream && (
+          <div className="mt-4 space-y-3">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              className="w-full rounded-lg border"
+            />
+            <div className="flex gap-3">
+              <button type="button" onClick={capturePhoto} className="btn-primary">
+                {t("capturePhoto")}
+              </button>
+              <button type="button" onClick={stopCamera} className="text-gray-500">
+                {t("cancel")}
+              </button>
+            </div>
+          </div>
+        )}
 
-      {cameraStream && (
-        <div className="mt-4 space-y-3">
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            className="w-full rounded-lg border"
-          />
-          <div className="flex gap-3">
-            <button type="button" onClick={capturePhoto} className="btn-primary">
-              {t("capturePhoto")}
-            </button>
-            <button type="button" onClick={stopCamera} className="text-gray-500">
-              {t("cancel")}
+        {selectedFile && (
+          <div className="relative mt-3 w-fit">
+            {selectedFile.type.startsWith("image/") ? (
+              <img
+                src={URL.createObjectURL(selectedFile)}
+                alt="preview"
+                className="w-40 rounded-lg border"
+              />
+            ) : (
+              <div className="p-3 border rounded-lg bg-gray-50 text-sm">
+                {selectedFile.name}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => setSelectedFile(null)}
+              className="absolute -top-2 -right-2 bg-primary-dark text-white rounded-full p-1 shadow hover:bg-primary"
+            >
+              <FiX size={14} />
             </button>
           </div>
-        </div>
-      )}
+        )}
 
-      {selectedFile && (
-        <div className="relative mt-3 w-fit">
-          {selectedFile.type.startsWith("image/") ? (
-            <img
-              src={URL.createObjectURL(selectedFile)}
-              alt="preview"
-              className="w-40 rounded-lg border"
-            />
-          ) : (
-            <div className="p-3 border rounded-lg bg-gray-50 text-sm">
-              {selectedFile.name}
-            </div>
-          )}
-          <button
-            type="button"
-            onClick={() => setSelectedFile(null)}
-            className="absolute -top-2 -right-2 bg-primary-dark text-white rounded-full p-1 shadow hover:bg-primary"
-          >
-            <FiX size={14} />
-          </button>
-        </div>
-      )}
+        <button
+          type="submit"
+          disabled={loading}
+          className="btn-primary w-full flex items-center justify-center gap-2 py-4 text-base"
+        >
+          {loading ? <Loader size="sm" /> : t("submitBtn2")}
+        </button>
+      </motion.form>
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="btn-primary w-full flex items-center justify-center gap-2 py-4 text-base"
-      >
-        {loading ? <Loader size="sm" /> : t("submitBtn2")}
-      </button>
-
-      {/* OTP Modal — receives the generated OTP to display it */}
+      {/* ✅ OtpModal outside the form — prevents cancel/close from triggering form submit */}
       <OtpModal
         open={otpModalOpen}
         mobile={form.mobile}
@@ -620,7 +622,7 @@ const GrievanceForm = () => {
         onClose={() => setOtpModalOpen(false)}
         loading={otpLoading}
       />
-    </motion.form>
+    </>
   );
 };
 
