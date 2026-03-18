@@ -185,56 +185,66 @@ const Home = () => {
           <div className="max-w-2xl mx-auto text-center flex flex-col items-center px-0 sm:px-32 md:px-44 lg:px-0">
 
             {/* ── Mobile hero: images flank the title/subtitle (xs and sm only) ── */}
-            <div className="flex md:hidden w-full items-center justify-between gap-1 mb-4 overflow-hidden">
-
-              {/* Left image */}
+            <div
+              className="flex md:hidden w-full items-center mb-4"
+              style={{ gap: 0, overflow: "hidden" }}
+            >
+              {/* Left image — fixed width so it never squeezes the center */}
               <motion.img
                 src={stalinLogo}
                 alt="Stalin Logo"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6 }}
-                className="flex-shrink-0 drop-shadow-lg"
+                className="drop-shadow-lg flex-none"
                 style={{
-                  width: "clamp(72px, 20vw, 112px)",
-                  height: "clamp(90px, 26vw, 144px)",
+                  width: "clamp(60px, 17vw, 96px)",
+                  height: "clamp(76px, 21vw, 120px)",
                   objectFit: "contain",
                   objectPosition: "left center",
                 }}
               />
 
-              {/* Center content */}
-              <div className="flex-1 min-w-0 flex flex-col items-center justify-center text-center px-1">
+              {/* Center content — flex-1 with minWidth:0 prevents overflow */}
+              <div
+                className="flex flex-col items-center justify-center text-center px-2"
+                style={{ flex: "1 1 0", minWidth: 0 }}
+              >
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="inline-flex items-center gap-1 bg-amber-100/70 rounded-full px-2 py-1 text-xs mb-2 text-amber-900 whitespace-nowrap"
+                  className="inline-flex items-center gap-1 bg-amber-100/70 rounded-full px-2 py-1 text-amber-900 mb-2"
+                  style={{ fontSize: "clamp(0.55rem, 2.5vw, 0.75rem)", whiteSpace: "nowrap" }}
                 >
-                  <FiShield size={11} /> {t("officialPortal")}
+                  <FiShield size={10} /> {t("officialPortal")}
                 </motion.div>
                 <motion.h1
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="font-bold leading-tight !text-amberBrown-900 mb-1 whitespace-nowrap"
-                  style={{ fontSize: "clamp(0.6rem, 3vw, 1.15rem)" }}
+                  className="font-bold leading-tight !text-amberBrown-900 mb-0 w-full"
+                  style={{
+                    fontSize: "clamp(0.55rem, 2.6vw, 1rem)",
+                    wordBreak: "break-word",
+                    overflowWrap: "break-word",
+                    whiteSpace: "normal",
+                  }}
                 >
                   {t("heroTitle")}
                 </motion.h1>
-                
               </div>
 
-              {/* Right image */}
+              {/* Right image — fixed width matching left */}
               <motion.img
                 src={fanLogo}
                 alt="Fan Logo"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6 }}
-                className="flex-shrink-0 drop-shadow-lg"
+                className="drop-shadow-lg flex-none"
                 style={{
-                  width: "clamp(72px, 20vw, 112px)",
-                  height: "clamp(90px, 26vw, 144px)",
+                  width: "clamp(60px, 17vw, 96px)",
+                  height: "clamp(76px, 21vw, 120px)",
                   objectFit: "contain",
                   objectPosition: "right center",
                 }}
@@ -259,8 +269,6 @@ const Home = () => {
             >
               {t("heroTitle")}
             </motion.h1>
-
-            
 
             {/* ── Shared: description + paragraph + buttons (all screen sizes) ── */}
             <motion.p
