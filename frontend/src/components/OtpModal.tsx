@@ -32,8 +32,8 @@ const OtpModal = ({
     if (open && generatedOtp) {
       setBannerDismissed(false);
       const timer = setTimeout(() => setShowSmsBanner(true), 1200);
-      // Auto-dismiss banner after 6s
-      const dismiss = setTimeout(() => setShowSmsBanner(false), 7200);
+      // Auto-dismiss banner after 12s
+      const dismiss = setTimeout(() => setShowSmsBanner(false), 13200);
       return () => {
         clearTimeout(timer);
         clearTimeout(dismiss);
@@ -119,7 +119,7 @@ const OtpModal = ({
               className="h-0.5 bg-primary rounded-full mt-1 mx-1"
               initial={{ width: "100%" }}
               animate={{ width: "0%" }}
-              transition={{ duration: 6, ease: "linear" }}
+              transition={{ duration: 12, ease: "linear" }}
             />
           </motion.div>
         )}
