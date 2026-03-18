@@ -1,35 +1,66 @@
-import axios from 'axios';
+import axios, {
+  AxiosError,
+  AxiosResponse,
+  InternalAxiosRequestConfig,
+} from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+// ─── Environment Config ───────────────────────────────────────────────────────
+const API_URL = import.meta.env.VITE_API_URL;
 
+if (!API_URL) {
+  console.warn(
+    '[apiClient] VITE_API_URL is not defined. ' +
+      'Create a .env file with VITE_API_URL=http://localhost:8000/api/v1'
+  );
+}
+
+const BASE_URL = API_URL || 'http://localhost:8000/api/v1';
+
+// ─── Token Helpers ────────────────────────────────────────────────────────────
+const TOKEN_KEY = 'tn_access_token';
+const ROLE_KEY  = 'tn_role';
+
+export const getToken  = (): string | null => localStorage.getItem(TOKEN_KEY);
+export const getRole   = (): string | null => localStorage.getItem(ROLE_KEY);
+export const clearAuth = (): void => {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(ROLE_KEY);
+};
+
+// ─── Axios Instance ───────────────────────────────────────────────────────────
 export const apiClient = axios.create({
-  baseURL: API_URL,
-  headers: { 'Content-Type': 'application/json' },
-  timeout: 15000,
+  baseURL: BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  timeout: 15_000,
 });
 
-// Attach JWT token to every request if present
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('tn_access_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  
-  // Remove Content-Type header for FormData to let browser set it with boundary
-  if (config.data instanceof FormData) {
-    delete config.headers['Content-Type'];
-  }
-  
-  return config;
-});
+// ─── Request Interceptor ──────────────────────────────────────────────────────
+apiClient.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    // Attach JWT token if present
+    const token = getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
 
-// Handle 401 globally
+    // Let the browser set Content-Type + boundary for FormData
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+
+    return config;
+  },
+  (error: AxiosError) => Promise.reject(error)
+);
+
+// ─── Response Interceptor ─────────────────────────────────────────────────────
 apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  (response: AxiosResponse) => response,
+  (error: AxiosError) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('tn_access_token');
-      localStorage.removeItem('tn_role');
+      clearAuth();
       window.location.href = '/login?role=admin';
     }
     return Promise.reject(error);

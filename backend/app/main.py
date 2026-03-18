@@ -1,35 +1,43 @@
+from contextlib import asynccontextmanager
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from contextlib import asynccontextmanager
-from pathlib import Path
+
 from app.core.config import settings
 from app.api.v1.router import api_router
-from app.db.database import engine
-from app.models import User, Grievance  # noqa: registers models with Base
-from app.db.database import Base
-from app.db.database import engine, SessionLocal
-from app.services.user_service import seed_default_users
-from app.services.grievance_service import create_grievance
-from app.schemas.grievance import GrievanceCreate
-from app.models.grievance import GrievanceStatus
-from datetime import datetime, timedelta
+from app.db.database import Base, engine
+from app.models import User, Grievance  # noqa: F401 — registers models with Base
+
+
+# ─── Lifespan ─────────────────────────────────────────────────────────────────
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
+    # ── Startup ──
     Base.metadata.create_all(bind=engine)
-    
-    # Create uploads directory
+
     upload_dir = Path("uploads/grievances")
     upload_dir.mkdir(parents=True, exist_ok=True)
-    
-    yield
-    # Shutdown
 
+    print(f"✅  {settings.APP_NAME} v{settings.APP_VERSION} started")
+    print(f"📁  Upload dir  : {upload_dir.resolve()}")
+    print(f"🌍  CORS origins: {settings.origins_list}")
+    print(f"📖  Docs        : http://localhost:8000/docs")
+
+    yield
+
+    # ── Shutdown ──
+    print("👋  Shutting down…")
+
+
+# ─── App ──────────────────────────────────────────────────────────────────────
 
 app = FastAPI(
     title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+    debug=settings.DEBUG,
     description="""
 ## Tamil Nadu Grievance Portal API
 
@@ -37,6 +45,8 @@ app = FastAPI(
 - `POST /api/v1/grievances/` — Submit grievance with optional file attachment
 - `GET /api/v1/grievances/track/{token}` — Track by token
 - `GET /api/v1/grievances/by-mobile/{mobile}` — Find by mobile
+- `POST /api/v1/grievances/send-otp` — Send OTP to mobile
+- `POST /api/v1/grievances/verify-otp` — Verify OTP
 
 **Protected Endpoints**:
 - `POST /api/v1/auth/login` — Get JWT token
@@ -52,13 +62,13 @@ app = FastAPI(
 **Setup**:
 To seed demo data, run: `python seed.py`
     """,
-    version=settings.APP_VERSION,
     docs_url="/docs",
     redoc_url="/redoc",
     lifespan=lifespan,
 )
 
-# CORS
+# ─── Middleware ────────────────────────────────────────────────────────────────
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.origins_list,
@@ -67,20 +77,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Routes
+# ─── Routers ──────────────────────────────────────────────────────────────────
+
 app.include_router(api_router, prefix="/api/v1")
 
-# Serve uploaded files
+# ─── Static files ─────────────────────────────────────────────────────────────
+
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
+# ─── Health endpoints ─────────────────────────────────────────────────────────
 
 @app.get("/", tags=["Health"])
 def root():
     return {
-        "app": settings.APP_NAME,
+        "app":     settings.APP_NAME,
         "version": settings.APP_VERSION,
-        "status": "running",
-        "docs": "/docs",
+        "status":  "running",
+        "docs":    "/docs",
     }
 
 
