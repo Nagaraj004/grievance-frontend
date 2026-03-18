@@ -147,7 +147,7 @@ export const fetchQueries = createAsyncThunk(
       const res = await grievanceService.getQueries(token);
 
       return res.map((q: any) => ({
-        id: q.id,
+        id: String(q.id), // normalize to string
         message: q.message,
         sender: q.sender,
         createdAt: q.created_at,
@@ -174,7 +174,7 @@ export const sendQuery = createAsyncThunk(
       return {
         token,
         query: {
-          id: res.id,
+          id: String(res.id), // normalize to string
           message: res.message,
           sender: res.sender,
           createdAt: res.created_at,
