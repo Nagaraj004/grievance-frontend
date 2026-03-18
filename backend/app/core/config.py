@@ -17,19 +17,19 @@ class Settings(BaseSettings):
     # ── App ───────────────────────────────────────────────────────────────────
     APP_NAME: str = "Tamil Nadu Grievance Portal"
     APP_VERSION: str = "1.0.0"
-    DEBUG: bool = True
+    DEBUG: bool = False                  # .env overrides: DEBUG=true for local
 
     # ── Database ──────────────────────────────────────────────────────────────
-    DATABASE_URL: str = "postgresql://postgres:password@localhost:5432/grievance_db"
+    DATABASE_URL: str                    # required — must be set in .env
     DATABASE_SCHEMA: str = "Grievance"
 
     # ── JWT ───────────────────────────────────────────────────────────────────
-    SECRET_KEY: str = "your-super-secret-jwt-key-change-this-in-production-min-32-chars"
+    SECRET_KEY: str                      # required — must be set in .env
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
     # ── CORS ──────────────────────────────────────────────────────────────────
-    ALLOWED_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
+    ALLOWED_ORIGINS: str = "https://grievance.risingsuntech.in"   # .env overrides this
 
     # ── Derived ───────────────────────────────────────────────────────────────
     @property
