@@ -83,7 +83,7 @@ export const grievanceService = {
       formData.append('attachment', payload.attachment);
     }
 
-    const res = await apiClient.post<any>('/grievances/', formData);
+    const res = await apiClient.post<any>('/grievances', formData); // ✅ removed trailing slash
     return adapt(res.data);
   },
 
@@ -112,7 +112,7 @@ export const grievanceService = {
   // ── List all grievances (admin) ─────────────────────────────────────────────
   async getAllGrievances(params?: GrievanceListParams): Promise<GrievanceListResponse> {
     const res = await apiClient.get<{ grievances: any[]; total: number }>(
-      '/grievances/',
+      '/grievances', // ✅ removed trailing slash
       { params }
     );
     return {

@@ -21,10 +21,10 @@ async def lifespan(app: FastAPI):
     upload_dir = Path("uploads/grievances")
     upload_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"✅  {settings.APP_NAME} v{settings.APP_VERSION} started")
-    print(f"📁  Upload dir  : {upload_dir.resolve()}")
-    print(f"🌍  CORS origins: {settings.origins_list}")
-    print(f"📖  Docs        : http://localhost:8000/docs")
+    print(f" {settings.APP_NAME} v{settings.APP_VERSION} started")
+    print(f" Upload dir  : {upload_dir.resolve()}")
+    print(f" CORS origins: {settings.origins_list}")
+    print(f"Docs        : http://localhost:8000/docs")
 
     yield
 
@@ -38,6 +38,7 @@ app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     debug=settings.DEBUG,
+    redirect_slashes=False,   # ✅ prevents 307/301 that turns POST into GET
     description="""
 ## Tamil Nadu Grievance Portal API
 
