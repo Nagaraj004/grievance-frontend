@@ -38,7 +38,7 @@ app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     debug=settings.DEBUG,
-    redirect_slashes=False,   # ✅ prevents 307/301 that turns POST into GET
+    
     description="""
 ## Tamil Nadu Grievance Portal API
 
