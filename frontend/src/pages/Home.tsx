@@ -118,180 +118,253 @@ const Home = () => {
   ];
 
   const steps = [
-    {
-      icon: FiFileText,
-      title: t("step1Title"),
-      desc: t("step1Desc"),
-      step: "1",
-    },
-    {
-      icon: FiKey,
-      title: t("step2Title"),
-      desc: t("step2Desc"),
-      step: "2",
-    },
-    {
-      icon: FiClock,
-      title: t("step3Title"),
-      desc: t("step3Desc"),
-      step: "3",
-    },
-    {
-      icon: FiCheckCircle,
-      title: t("step4Title"),
-      desc: t("step4Desc"),
-      step: "4",
-    },
+    { icon: FiFileText,    title: t("step1Title"), desc: t("step1Desc"), step: "1" },
+    { icon: FiKey,         title: t("step2Title"), desc: t("step2Desc"), step: "2" },
+    { icon: FiClock,       title: t("step3Title"), desc: t("step3Desc"), step: "3" },
+    { icon: FiCheckCircle, title: t("step4Title"), desc: t("step4Desc"), step: "4" },
   ];
 
   return (
     <div>
-      {/* Hero */}
+      {/* ── Hero ── */}
       <section className="gradient-header text-gray-800 overflow-visible relative">
         <div
           className="absolute inset-0 opacity-10"
           style={{
-            backgroundImage:
-              "radial-gradient(circle at 30% 50%, white 1px, transparent 1px)",
+            backgroundImage: "radial-gradient(circle at 30% 50%, white 1px, transparent 1px)",
             backgroundSize: "50px 50px",
           }}
         />
 
-        {/* Desktop: Stalin logo - pinned to left (md and above only) */}
+        {/* ── Desktop logos (xl+ only, 1280px+) — absolute positioned ── */}
+        {/* CHANGED: was lg:block — moved to xl:block to prevent overlap at 1024px iPad Pro */}
         <motion.img
-          src={stalinLogo}
-          alt="Stalin Logo"
-          initial={{ opacity: 0, x: -40 }}
-          animate={{ opacity: 1, x: 0 }}
+          src={stalinLogo} alt="Stalin Logo"
+          initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
-          className="hidden md:block absolute left-7 top-0 bottom-0 my-auto
-            w-40 h-40 md:w-48 md:h-48 lg:w-60 lg:h-60 xl:w-72 xl:h-72
-            object-contain drop-shadow-lg z-10"
+          className="hidden xl:block absolute left-7 top-0 bottom-0 my-auto
+            xl:w-72 xl:h-72 object-contain drop-shadow-lg z-10"
+        />
+        <motion.img
+          src={fanLogo} alt="Fan Logo"
+          initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+          className="hidden xl:block absolute right-9 top-0 bottom-0 my-auto
+            xl:w-72 xl:h-72 object-contain drop-shadow-lg z-10"
         />
 
-        {/* Desktop: Fan logo - pinned to right (md and above only) */}
-        <motion.img
-          src={fanLogo}
-          alt="Fan Logo"
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
-          className="hidden md:block absolute right-9 top-0 bottom-0 my-auto
-            w-40 h-40 md:w-48 md:h-48 lg:w-60 lg:h-60 xl:w-72 xl:h-72
-            object-contain drop-shadow-lg z-10"
-        />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-12 md:py-16 xl:py-24 relative">
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 md:py-24 relative">
-          <div className="max-w-2xl mx-auto text-center flex flex-col items-center px-0 sm:px-32 md:px-44 lg:px-0">
+          {/* ══ Tablet layout (md → xl : 768px – 1279px) ══
+               Logos are IN FLOW flanking the centre text.
+               CHANGED: was md:flex lg:hidden — now md:flex xl:hidden
+               so iPad Pro (1024px) uses this in-flow layout instead of
+               the absolute-logo desktop layout. ══ */}
+          <div className="hidden md:flex xl:hidden items-center justify-center w-full gap-4">
 
-            {/* ── Mobile hero: images flank the title/subtitle (xs and sm only) ── */}
-            <div
-              className="flex md:hidden w-full items-center mb-4"
-              style={{ gap: 0, overflow: "hidden" }}
-            >
-              {/* Left image — fixed width so it never squeezes the center */}
-              <motion.img
-                src={stalinLogo}
-                alt="Stalin Logo"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6 }}
-                className="drop-shadow-lg flex-none"
-                style={{
-                  width: "clamp(60px, 17vw, 96px)",
-                  height: "clamp(76px, 21vw, 120px)",
-                  objectFit: "contain",
-                  objectPosition: "left center",
-                }}
-              />
+            {/* Stalin logo — in flow */}
+            <motion.img
+              src={stalinLogo} alt="Stalin Logo"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              transition={{ duration: 0.6 }}
+              className="flex-none object-contain drop-shadow-lg"
+              style={{ width: "130px", height: "150px" }}
+            />
 
-              {/* Center content — flex-1 with minWidth:0 prevents overflow */}
-              <div
-                className="flex flex-col items-center justify-center text-center px-2"
-                style={{ flex: "1 1 0", minWidth: 0 }}
+            {/* Centre content */}
+            <div className="flex flex-col items-center text-center flex-1 min-w-0">
+              <motion.div
+                initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
+                className="inline-flex items-center gap-2 bg-amber-100/70 rounded-full px-4 py-1.5 text-sm mb-3 text-amber-900 whitespace-nowrap"
               >
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="inline-flex items-center gap-1 bg-amber-100/70 rounded-full px-2 py-1 text-amber-900 mb-2"
-                  style={{ fontSize: "clamp(0.55rem, 2.5vw, 0.75rem)", whiteSpace: "nowrap" }}
-                >
-                  <FiShield size={10} /> {t("officialPortal")}
-                </motion.div>
-                <motion.h1
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                  className="font-bold leading-tight !text-amberBrown-900 mb-0 w-full"
-                  style={{
-                    fontSize: "clamp(0.55rem, 2.6vw, 1rem)",
-                    wordBreak: "break-word",
-                    overflowWrap: "break-word",
-                    whiteSpace: "normal",
-                  }}
-                >
-                  {t("heroTitle")}
-                </motion.h1>
-              </div>
+                <FiShield size={14} /> {t("officialPortal")}
+              </motion.div>
 
-              {/* Right image — fixed width matching left */}
-              <motion.img
-                src={fanLogo}
-                alt="Fan Logo"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6 }}
-                className="drop-shadow-lg flex-none"
-                style={{
-                  width: "clamp(60px, 17vw, 96px)",
-                  height: "clamp(76px, 21vw, 120px)",
-                  objectFit: "contain",
-                  objectPosition: "right center",
-                }}
-              />
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="font-bold mb-2 leading-tight !text-amberBrown-900 whitespace-nowrap"
+                style={{ fontSize: "clamp(0.85rem, 1.6vw, 1.5rem)" }}
+              >
+                {t("heroTitle")}
+              </motion.h1>
+
+              <motion.p
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="text-sm !text-amberBrown-900 mb-3 leading-relaxed text-center"
+              >
+                {t("heroDesc")}
+              </motion.p>
+
+              <motion.p
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                transition={{ delay: 0.25 }}
+                className="text-sm !text-amberBrown-900 mb-4 font-medium text-center"
+              >
+                {t("heroParagraph")}
+              </motion.p>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="flex flex-row gap-3 justify-center"
+              >
+                <Link
+                  to="/submit"
+                  className="flex items-center gap-2 bg-primary-dark text-white font-bold py-2.5 px-5 rounded-2xl text-sm hover:bg-primary hover:text-gray-900 transition-all duration-300 shadow-lg hover:-translate-y-0.5"
+                >
+                  <FiFileText size={15} /> {t("submitBtn")}
+                </Link>
+                <Link
+                  to="/track"
+                  className="flex items-center gap-2 bg-white border-2 border-primary-dark text-primary-dark font-bold py-2.5 px-5 rounded-2xl text-sm hover:bg-primary-light hover:text-gray-900 transition-all duration-300 hover:-translate-y-0.5"
+                >
+                  <FiSearch size={15} /> {t("trackBtn")}
+                </Link>
+              </motion.div>
             </div>
 
-            {/* ── Desktop: badge + title + subtitle (md and above) ── */}
+            {/* Fan logo — in flow */}
+            <motion.img
+              src={fanLogo} alt="Fan Logo"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              transition={{ duration: 0.6 }}
+              className="flex-none object-contain drop-shadow-lg"
+              style={{ width: "130px", height: "150px" }}
+            />
+          </div>
+
+          {/* ══ Desktop layout (xl+ : 1280px+) ══
+               CHANGED: was hidden lg:flex — now hidden xl:flex ══ */}
+          <div className="hidden xl:flex max-w-2xl mx-auto text-center flex-col items-center">
             <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="hidden md:inline-flex items-center gap-2 bg-amber-100/70 rounded-full px-4 py-1.5 text-sm mb-5 text-amber-900"
+              initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
+              className="inline-flex items-center gap-2 bg-amber-100/70 rounded-full px-4 py-1.5 text-sm mb-5 text-amber-900"
             >
               <FiShield size={14} /> {t("officialPortal")}
             </motion.div>
 
             <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="hidden md:block font-bold mb-1 leading-tight whitespace-nowrap !text-amberBrown-900"
-              style={{ fontSize: "clamp(1.5rem, 3.5vw, 3rem)" }}
+              className="font-bold mb-1 leading-tight whitespace-nowrap !text-amberBrown-900"
+              style={{ fontSize: "clamp(1rem, 2.4vw, 2.2rem)" }}
             >
               {t("heroTitle")}
             </motion.h1>
 
-            {/* ── Shared: description + paragraph + buttons (all screen sizes) ── */}
             <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="text-sm sm:text-base !text-amberBrown-900 mb-4 sm:mb-8 leading-relaxed text-center px-1"
+              className="text-base !text-amberBrown-900 mb-8 leading-relaxed text-center px-1"
             >
               {t("heroDesc")}
             </motion.p>
 
             <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               transition={{ delay: 0.25 }}
-              className="text-base sm:text-xl !text-amberBrown-900 mb-4 font-medium text-center px-1"
+              className="text-xl !text-amberBrown-900 mb-4 font-medium text-center px-1"
             >
               {t("heroParagraph")}
             </motion.p>
 
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center w-full sm:w-auto"
+            >
+              <Link
+                to="/submit"
+                className="flex items-center justify-center gap-2 bg-primary-dark text-white font-bold py-4 px-8 rounded-2xl text-lg hover:bg-primary hover:text-gray-900 transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-0.5 active:scale-100"
+              >
+                <FiFileText size={18} /> {t("submitBtn")}
+              </Link>
+              <Link
+                to="/track"
+                className="flex items-center justify-center gap-2 bg-white border-2 border-primary-dark text-primary-dark font-bold py-4 px-8 rounded-2xl text-lg hover:bg-primary-light hover:text-gray-900 transition-all duration-300 hover:-translate-y-0.5"
+              >
+                <FiSearch size={18} /> {t("trackBtn")}
+              </Link>
+            </motion.div>
+          </div>
+
+          {/* ══ Mobile layout (below md : < 768px) — unchanged ══ */}
+          <div className="md:hidden max-w-2xl mx-auto text-center flex flex-col items-center px-0 sm:px-8">
+            <div className="flex w-full flex-col items-center mb-3">
+              <div className="flex items-center justify-between w-full">
+                <motion.img
+                  src={stalinLogo} alt="Stalin Logo"
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                  transition={{ duration: 0.6 }}
+                  className="drop-shadow-lg flex-none"
+                  style={{
+                    width: "clamp(44px, 11vw, 70px)",
+                    height: "clamp(52px, 14vw, 88px)",
+                    objectFit: "contain",
+                    objectPosition: "left top",
+                    marginTop: "-4px",
+                  }}
+                />
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+                  className="inline-flex items-center gap-1 bg-amber-100/70 rounded-full px-3 py-1 text-amber-900"
+                  style={{ fontSize: "clamp(0.55rem, 2.5vw, 0.75rem)", whiteSpace: "nowrap" }}
+                >
+                  <FiShield size={9} /> {t("officialPortal")}
+                </motion.div>
+                <motion.img
+                  src={fanLogo} alt="Fan Logo"
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                  transition={{ duration: 0.6 }}
+                  className="drop-shadow-lg flex-none"
+                  style={{
+                    width: "clamp(44px, 11vw, 70px)",
+                    height: "clamp(52px, 14vw, 88px)",
+                    objectFit: "contain",
+                    objectPosition: "right top",
+                    marginTop: "-4px",
+                  }}
+                />
+              </div>
+              <div className="flex flex-col items-center justify-center text-center w-full mt-2">
+                <motion.h1
+                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="font-bold leading-tight !text-amberBrown-900 mb-0 w-full"
+                  style={{
+                    fontSize: "clamp(0.7rem, 4vw, 1.3rem)",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    display: "block",
+                    width: "100%",
+                    textAlign: "center",
+                  }}
+                >
+                  {t("heroTitle")}
+                </motion.h1>
+              </div>
+            </div>
+
+            <motion.p
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="text-xs sm:text-sm !text-amberBrown-900 mb-3 sm:mb-6 leading-relaxed text-center px-1"
+            >
+              {t("heroDesc")}
+            </motion.p>
+
+            <motion.p
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              transition={{ delay: 0.25 }}
+              className="text-sm sm:text-base !text-amberBrown-900 mb-4 font-medium text-center px-1"
+            >
+              {t("heroParagraph")}
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
               className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center w-full sm:w-auto"
             >
@@ -308,8 +381,8 @@ const Home = () => {
                 <FiSearch size={18} /> {t("trackBtn")}
               </Link>
             </motion.div>
-
           </div>
+
         </div>
       </section>
 
@@ -319,17 +392,12 @@ const Home = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {stats.map((s, i) => (
               <motion.div
-                key={s.label}
-                custom={i}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={fadeUp}
+                key={s.label} custom={i}
+                initial="hidden" whileInView="visible"
+                viewport={{ once: true }} variants={fadeUp}
                 className="text-center p-4"
               >
-                <div
-                  className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-2 ${s.color}`}
-                >
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-2 ${s.color}`}>
                   <s.icon size={22} />
                 </div>
                 <p className="text-2xl font-bold text-gray-800">{s.value}</p>
@@ -344,32 +412,23 @@ const Home = () => {
       <section className="py-16 bg-stone-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeUp}
+            initial="hidden" whileInView="visible"
+            viewport={{ once: true }} variants={fadeUp}
             className="text-center mb-10"
           >
             <div className="inline-flex items-center gap-2 bg-primary-light text-primary-dark text-sm font-semibold px-4 py-1.5 rounded-full mb-3">
               ⭐ முதல்வரின் முகவரி
             </div>
-            <h2 className="text-3xl font-bold text-gray-800">
-              {t("schemesTitle")}
-            </h2>
-            <p className="text-gray-500 mt-2 max-w-xl mx-auto">
-              {t("schemesSubtitle")}
-            </p>
+            <h2 className="text-3xl font-bold text-gray-800">{t("schemesTitle")}</h2>
+            <p className="text-gray-500 mt-2 max-w-xl mx-auto">{t("schemesSubtitle")}</p>
           </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {schemes.map((scheme, i) => (
               <motion.div
-                key={scheme.name}
-                custom={i}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={fadeUp}
+                key={scheme.name} custom={i}
+                initial="hidden" whileInView="visible"
+                viewport={{ once: true }} variants={fadeUp}
                 whileHover={{ y: -4, boxShadow: "0 16px 40px rgba(0,0,0,0.1)" }}
                 className={`bg-gradient-to-br ${scheme.color} border ${scheme.border} rounded-2xl p-5 cursor-pointer`}
               >
@@ -386,9 +445,7 @@ const Home = () => {
                   {lang === "ta" ? scheme.descTa : scheme.desc}
                 </p>
                 <a
-                  href="https://www.tn.gov.in"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="https://www.tn.gov.in" target="_blank" rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-dark px-3 py-1.5 rounded-lg transition-all duration-200 hover:bg-primary-light hover:text-gray-900 hover:shadow-sm"
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -399,16 +456,12 @@ const Home = () => {
           </div>
 
           <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeUp}
+            initial="hidden" whileInView="visible"
+            viewport={{ once: true }} variants={fadeUp}
             className="text-center mt-8"
           >
             <a
-              href="https://www.tn.gov.in"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="https://www.tn.gov.in" target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-dark px-3 py-1.5 rounded-lg transition-all duration-200 hover:bg-primary-light hover:text-gray-900 hover:shadow-sm"
             >
               {t("viewAllSchemes")} <FiExternalLink size={15} />
@@ -421,36 +474,27 @@ const Home = () => {
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeUp}
+            initial="hidden" whileInView="visible"
+            viewport={{ once: true }} variants={fadeUp}
             className="text-center mb-12"
           >
             <span className="text-primary-dark font-semibold text-sm uppercase tracking-wider">
               {t("simpleProcess")}
             </span>
-            <h2 className="text-3xl font-bold text-gray-800 mt-2">
-              {t("howItWorks")}
-            </h2>
+            <h2 className="text-3xl font-bold text-gray-800 mt-2">{t("howItWorks")}</h2>
             <p className="text-gray-500 mt-2">{t("stepsDesc")}</p>
           </motion.div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
             {steps.map((step, i) => (
               <motion.div
-                key={step.step}
-                custom={i}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={fadeUp}
+                key={step.step} custom={i}
+                initial="hidden" whileInView="visible"
+                viewport={{ once: true }} variants={fadeUp}
                 className="card relative"
               >
                 <div
                   className="absolute -top-3 -right-3 w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm shadow"
-                  style={{
-                    background: "linear-gradient(135deg, #1f2937, #fef3c7)",
-                  }}
+                  style={{ background: "linear-gradient(135deg, #1f2937, #fef3c7)" }}
                 >
                   {step.step}
                 </div>
@@ -458,9 +502,7 @@ const Home = () => {
                   <step.icon size={22} className="text-primary-dark" />
                 </div>
                 <h3 className="font-bold text-gray-800 mb-2">{step.title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">
-                  {step.desc}
-                </p>
+                <p className="text-sm text-gray-500 leading-relaxed">{step.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -471,23 +513,16 @@ const Home = () => {
       <section className="py-16 bg-stone-50">
         <div className="max-w-3xl mx-auto px-4 text-center">
           <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeUp}
+            initial="hidden" whileInView="visible"
+            viewport={{ once: true }} variants={fadeUp}
           >
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">
-              {t("haveGrievance")}
-            </h2>
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">{t("haveGrievance")}</h2>
             <p className="text-gray-500 mb-8 text-lg">{t("ctaDesc")}</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/submit" className="btn-primary text-lg py-4 px-10">
                 {t("fileNow")}
               </Link>
-              <Link
-                to="/forgot-token"
-                className="btn-secondary text-lg py-4 px-10"
-              >
+              <Link to="/forgot-token" className="btn-secondary text-lg py-4 px-10">
                 {t("forgotToken")}?
               </Link>
             </div>

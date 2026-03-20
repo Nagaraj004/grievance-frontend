@@ -49,9 +49,21 @@ const OtpModal = ({
     }
   }, [open]);
 
+  // Lock body scroll on mobile when modal is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
   const handleBannerTap = () => {
     if (generatedOtp) {
-      setOtp(generatedOtp); // auto-fill OTP
+      setOtp(generatedOtp);
     }
     setShowSmsBanner(false);
     setBannerDismissed(true);
@@ -74,12 +86,17 @@ const OtpModal = ({
             exit={{ y: -100, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 28 }}
             onClick={handleBannerTap}
-            className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] w-[92vw] max-w-sm cursor-pointer select-none"
+            // Responsive: safe margins on all screen sizes
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999]
+                       w-[calc(100vw-2rem)] max-w-sm cursor-pointer select-none"
           >
-            <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 px-4 py-3 flex items-start gap-3">
+            <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl
+                            border border-gray-100 px-3 py-2.5 sm:px-4 sm:py-3
+                            flex items-start gap-2.5 sm:gap-3">
               {/* App icon */}
-              <div className="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center shrink-0 mt-0.5 shadow">
-                <FiMessageSquare className="text-white" size={20} />
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-green-500
+                              flex items-center justify-center shrink-0 mt-0.5 shadow">
+                <FiMessageSquare className="text-white" size={18} />
               </div>
 
               {/* Content */}
@@ -108,9 +125,9 @@ const OtpModal = ({
               {/* Dismiss */}
               <button
                 onClick={handleDismissBanner}
-                className="text-gray-300 hover:text-gray-500 shrink-0 mt-0.5"
+                className="text-gray-300 hover:text-gray-500 shrink-0 mt-0.5 p-1"
               >
-                <FiX size={15} />
+                <FiX size={14} />
               </button>
             </div>
 
@@ -129,31 +146,42 @@ const OtpModal = ({
       <AnimatePresence>
         {open && (
           <motion.div
-            className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+            // Mobile: bottom-sheet. sm+: centered modal
+            className="fixed inset-0 bg-black/40 flex items-end sm:items-center
+                       justify-center z-50 p-0 sm:p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
           >
             <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative"
+              // Slide up from bottom on mobile, scale in on desktop
+              initial={{ y: "100%", opacity: 1 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: "100%", opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="bg-white w-full sm:max-w-md
+                         rounded-t-3xl sm:rounded-2xl
+                         shadow-xl px-5 pt-4 pb-8 sm:p-6 relative"
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Drag handle pill — visible on mobile only */}
+              <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4 sm:hidden" />
+
               <button
                 onClick={onClose}
-                className="absolute right-4 top-4 text-gray-400 hover:text-gray-700"
+                className="absolute right-4 top-4 text-gray-400 hover:text-gray-700
+                           p-1 rounded-full hover:bg-gray-100 transition-colors"
               >
                 <FiX size={20} />
               </button>
 
               <div className="flex items-center gap-3 mb-1">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary/10
+                                flex items-center justify-center shrink-0">
                   <FiMessageSquare className="text-primary-dark" size={20} />
                 </div>
-                <h2 className="text-xl font-bold text-gray-800">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-800">
                   Verify Mobile Number
                 </h2>
               </div>
@@ -170,7 +198,9 @@ const OtpModal = ({
                 <motion.div
                   initial={{ opacity: 0, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 mb-4 text-xs text-amber-700 flex items-center gap-2"
+                  className="bg-amber-50 border border-amber-200 rounded-xl
+                             px-4 py-2.5 mb-4 text-xs text-amber-700
+                             flex items-center gap-2"
                 >
                   <span>💡</span>
                   <span>
@@ -193,7 +223,8 @@ const OtpModal = ({
               <button
                 onClick={onVerify}
                 disabled={loading || otp.length !== 6}
-                className="btn-primary w-full mt-5 flex items-center justify-center gap-2"
+                className="btn-primary w-full mt-5 flex items-center justify-center
+                           gap-2 py-3.5 sm:py-3"
               >
                 {loading ? <Loader size="sm" /> : "Verify OTP"}
               </button>
@@ -201,7 +232,8 @@ const OtpModal = ({
               <button
                 onClick={onClose}
                 disabled={loading}
-                className="w-full mt-2 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                className="w-full mt-2 py-3 sm:py-2 text-sm text-gray-500
+                           hover:text-gray-700 transition-colors"
               >
                 Cancel
               </button>
@@ -217,7 +249,7 @@ const OtpModal = ({
   );
 };
 
-/** Segmented 6-box OTP input */
+/** Segmented 6-box OTP input — responsive sizing via clamp */
 const OtpInputBoxes = ({
   value,
   onChange,
@@ -253,16 +285,27 @@ const OtpInputBoxes = ({
     }
   };
 
+  // Handle paste — fills all 6 boxes at once (important for SMS autofill on mobile)
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (pasted) {
+      onChange(pasted.padEnd(value.length, value.slice(pasted.length)).slice(0, 6));
+      const nextIdx = Math.min(pasted.length, 5);
+      inputRefs[nextIdx][0]?.focus();
+    }
+  };
+
   // When value is set programmatically (autofill), focus last filled box
   useEffect(() => {
     if (value.length === 6) {
       inputRefs[5][0]?.focus();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
   return (
-    <div className="flex gap-2 justify-center">
+    <div className="flex gap-2 sm:gap-2.5 justify-center">
       {Array.from({ length: 6 }).map((_, i) => (
         <input
           key={i}
@@ -273,7 +316,13 @@ const OtpInputBoxes = ({
           ref={(el) => { inputRefs[i][1](el); }}
           onChange={(e) => handleChange(i, e.target.value)}
           onKeyDown={(e) => handleKeyDown(i, e)}
-          className={`w-11 h-12 text-center text-lg font-bold rounded-xl border-2 outline-none transition-all
+          onPaste={i === 0 ? handlePaste : undefined}
+          // clamp ensures 6 boxes always fit on any screen width
+          style={{
+            width: "clamp(36px, 13vw, 48px)",
+            height: "clamp(40px, 12vw, 52px)",
+          }}
+          className={`text-center text-lg font-bold rounded-xl border-2 outline-none transition-all
             ${value[i]
               ? "border-primary bg-primary/5 text-primary-dark"
               : "border-gray-200 text-gray-800"
