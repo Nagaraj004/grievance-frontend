@@ -45,14 +45,14 @@ const schemes = [
     tag: "Education",
   },
   {
-    icon: "🚌",
-    name: "Free Bus Travel for Women",
-    nameTa: "பெண்களுக்கு இலவச பேருந்து",
-    desc: "Free travel for all women in Tamil Nadu government buses.",
-    descTa: "தமிழகத்தில் அனைத்து பெண்களுக்கும் அரசு பேருந்தில் இலவச பயணம்.",
+    icon: "🏭",
+    name: "MSME Reservation Scheme",
+    nameTa: "MSME தொழில்களுக்கு ஒதுக்கீடு",
+    desc: "Reservation for Micro, Small and Medium Enterprises",
+    descTa: "சிறு, குறு மற்றும் நடுத்தர தொழில்களுக்கு ஒதுக்கீடு",
     color: "from-green-50 to-emerald-50",
     border: "border-green-200",
-    tag: "Transport",
+    tag: "Reservation",
   },
   {
     icon: "💊",
@@ -315,18 +315,18 @@ const Home = () => {
                   <FiShield size={9} /> {t("officialPortal")}
                 </motion.div>
                 <motion.img
-                  src={fanLogo} alt="Fan Logo"
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  transition={{ duration: 0.6 }}
-                  className="drop-shadow-lg flex-none"
-                  style={{
-                    width: "clamp(44px, 11vw, 70px)",
-                    height: "clamp(52px, 14vw, 88px)",
-                    objectFit: "contain",
-                    objectPosition: "right top",
-                    marginTop: "-4px",
-                  }}
-                />
+  src={fanLogo} alt="Fan Logo"
+  initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+  transition={{ duration: 0.6 }}
+  className="drop-shadow-lg flex-none"
+  style={{
+    width: "clamp(52px, 13vw, 82px)",
+    height: "clamp(62px, 16vw, 102px)",
+    objectFit: "contain",
+    objectPosition: "right top",
+    marginTop: "4px",
+  }}
+/>
               </div>
               <div className="flex flex-col items-center justify-center text-center w-full mt-2">
                 <motion.h1
