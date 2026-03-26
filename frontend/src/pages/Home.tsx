@@ -1,12 +1,16 @@
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../store/store";
+import { fetchPublicStats } from "../store/slices/grievanceSlice";
 import {
   FiFileText,
   FiSearch,
   FiShield,
   FiClock,
   FiCheckCircle,
-  FiUsers,
+  FiAlertCircle,
   FiKey,
   FiExternalLink,
 } from "react-icons/fi";
@@ -25,24 +29,26 @@ const fadeUp = {
 
 const schemes = [
   {
-    icon: "🏠",
-    name: "Kalaignar Veedu Vaazhga",
-    nameTa: "கலைஞர் வீடு வாழ்க",
-    desc: "Free houses for homeless families in Tamil Nadu.",
-    descTa: "தமிழகத்தில் வீடற்ற குடும்பங்களுக்கு இலவச வீடுகள்.",
+    icon: "🧕🏼",
+    name: "Magalir Urimai Thogai Scheme",
+    nameTa: "மகளிர் உரிமைத் தொகை திட்டம்",
+    desc: "A welfare scheme of the Tamil Nadu government that provides ₹1000 per month as financial assistance to eligible women heads of families.",
+    descTa: "தகுதியான குடும்பங்களில் உள்ள பெண்மணிக்கு மாதம் ₹1000 நிதி உதவி வழங்கும் தமிழ்நாடு அரசின் நலத்திட்டம்.",
     color: "from-primary-light to-primary",
     border: "border-primary-light",
-    tag: "Housing",
+    tag: "Woman Empowerment",
+    applyLink: "https://kmut.tn.gov.in/",
   },
   {
     icon: "🎓",
-    name: "Pudhumai Penn Thittam",
-    nameTa: "புதுமைப் பெண் திட்டம்",
-    desc: "₹1000/month scholarship for govt school girls in higher education.",
-    descTa: "உயர் கல்வி படிக்கும் அரசுப் பள்ளி மாணவிகளுக்கு மாதம் ₹1000.",
+    name: "TAHDCO Educational Loan Scheme",
+    nameTa: "TAHDCO கல்விக் கடன் திட்டம்",
+    desc: "A Tamil Nadu government scheme that provides low-interest educational loans to Adi Dravidar and Tribal students for pursuing higher education.",
+    descTa: "ஆதிதிராவிடர் மற்றும் பழங்குடியினர் மாணவர்களுக்கு உயர்கல்விக்காக குறைந்த வட்டியில் கல்விக் கடன் வழங்கும் தமிழ்நாடு அரசின் நலத்திட்டம்.",
     color: "from-amber-50 to-yellow-50",
     border: "border-amber-200",
     tag: "Education",
+    applyLink: "https://tel.tahdco.com/#/applicant",
   },
   {
     icon: "🏭",
@@ -53,66 +59,80 @@ const schemes = [
     color: "from-green-50 to-emerald-50",
     border: "border-green-200",
     tag: "Reservation",
+    applyLink: "https://www.msmeonline.tn.gov.in",
   },
   {
     icon: "💊",
-    name: "Innuyir Kaakka Thittam",
-    nameTa: "இன்னுயிர் காக்க திட்டம்",
-    desc: "Free dialysis for kidney patients across all government hospitals.",
-    descTa:
-      "அனைத்து அரசு மருத்துவமனைகளிலும் சிறுநீரக நோயாளிகளுக்கு இலவச டயாலிசிஸ்.",
+    name: "Maruthuva Kaapetu Thittam",
+    nameTa: "மருத்துவ காப்பீட்டு திட்டம்",
+    desc: "A welfare scheme of the Tamil Nadu government that provides free medical treatment to eligible families.",
+    descTa: "தகுதியான குடும்பங்களுக்கு இலவச மருத்துவ சிகிச்சை வழங்கும் தமிழ்நாடு அரசின் நலத்திட்டம்.",
     color: "from-blue-50 to-sky-50",
     border: "border-blue-200",
     tag: "Health",
+    applyLink: "https://www.cmchistn.com",
   },
   {
     icon: "⚡",
     name: "Free Electricity Units",
-    nameTa: "இலவச மின்சாரம்",
+    nameTa: "நெசவாளர்களுக்கான மின்சார திட்டம்",
     desc: "100 units free electricity per month for domestic consumers.",
-    descTa: "குடும்ப நுகர்வோருக்கு மாதம் 100 யூனிட் மின்சாரம் இலவசம்.",
+    descTa: "கைத்தறி நெசவாளர்களுக்கு இலவச மின்சாரம் வழங்கும் தமிழ்நாடு அரசின் நலத்திட்டம்.",
     color: "from-yellow-50 to-orange-50",
     border: "border-yellow-200",
     tag: "Electricity",
+    applyLink: "https://tnhandlooms.tn.gov.in/",
   },
   {
     icon: "🌾",
-    name: "Uzhavar Pasanam",
-    nameTa: "உழவர் பசணம்",
+    name: "Farmers Welfare Department",
+    nameTa: "உழவர் நலத்துறை திட்டம்",
     desc: "Financial assistance and crop insurance for farmers.",
     descTa: "விவசாயிகளுக்கு நிதி உதவி மற்றும் பயிர் காப்பீடு.",
     color: "from-lime-50 to-green-50",
     border: "border-lime-200",
     tag: "Agriculture",
+    applyLink: "https://www.tnagrisnet.tn.gov.in/",
   },
 ];
 
 const Home = () => {
   const { t, lang } = useLang();
+  const dispatch = useDispatch<AppDispatch>();
+  const { stats } = useSelector((s: RootState) => s.grievance);
 
-  const stats = [
+  useEffect(() => {
+    dispatch(fetchPublicStats());
+  }, [dispatch]);
+
+  // Shows "0" while loading so counters never appear broken
+  const fmt = (val?: number | null) =>
+    val != null ? val.toLocaleString("en-IN") : "0";
+
+  const statsCards = [
     {
       label: t("totalGrievances"),
-      value: "1,24,856",
+      value: fmt(stats?.total),
       icon: FiFileText,
       color: "bg-primary-light text-primary-dark",
     },
     {
       label: t("resolved"),
-      value: "98,432",
+      // resolved + closed matches MinisterDashboard calculation
+      value: fmt((stats?.resolved ?? 0) + (stats?.closed ?? 0)),
       icon: FiCheckCircle,
       color: "bg-green-50 text-green-700",
     },
     {
       label: t("inProgress"),
-      value: "18,246",
+      value: fmt(stats?.in_progress),
       icon: FiClock,
       color: "bg-yellow-50 text-yellow-700",
     },
     {
       label: t("citizensServed"),
-      value: `2.4 ${t("lakh")}`,
-      icon: FiUsers,
+      value: fmt(stats?.submitted),
+      icon: FiAlertCircle,
       color: "bg-purple-50 text-purple-700",
     },
   ];
@@ -136,8 +156,7 @@ const Home = () => {
           }}
         />
 
-        {/* ── Desktop logos (xl+ only, 1280px+) — absolute positioned ── */}
-        {/* CHANGED: was lg:block — moved to xl:block to prevent overlap at 1024px iPad Pro */}
+        {/* Desktop logos (xl+) — absolute positioned */}
         <motion.img
           src={stalinLogo} alt="Stalin Logo"
           initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }}
@@ -155,14 +174,8 @@ const Home = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-12 md:py-16 xl:py-24 relative">
 
-          {/* ══ Tablet layout (md → xl : 768px – 1279px) ══
-               Logos are IN FLOW flanking the centre text.
-               CHANGED: was md:flex lg:hidden — now md:flex xl:hidden
-               so iPad Pro (1024px) uses this in-flow layout instead of
-               the absolute-logo desktop layout. ══ */}
+          {/* Tablet layout (md → xl : 768px – 1279px) */}
           <div className="hidden md:flex xl:hidden items-center justify-center w-full gap-4">
-
-            {/* Stalin logo — in flow */}
             <motion.img
               src={stalinLogo} alt="Stalin Logo"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }}
@@ -170,8 +183,6 @@ const Home = () => {
               className="flex-none object-contain drop-shadow-lg"
               style={{ width: "130px", height: "150px" }}
             />
-
-            {/* Centre content */}
             <div className="flex flex-col items-center text-center flex-1 min-w-0">
               <motion.div
                 initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
@@ -179,7 +190,6 @@ const Home = () => {
               >
                 <FiShield size={14} /> {t("officialPortal")}
               </motion.div>
-
               <motion.h1
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
@@ -188,7 +198,6 @@ const Home = () => {
               >
                 {t("heroTitle")}
               </motion.h1>
-
               <motion.p
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                 transition={{ delay: 0.2 }}
@@ -196,7 +205,6 @@ const Home = () => {
               >
                 {t("heroDesc")}
               </motion.p>
-
               <motion.p
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                 transition={{ delay: 0.25 }}
@@ -204,7 +212,6 @@ const Home = () => {
               >
                 {t("heroParagraph")}
               </motion.p>
-
               <motion.div
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
@@ -224,8 +231,6 @@ const Home = () => {
                 </Link>
               </motion.div>
             </div>
-
-            {/* Fan logo — in flow */}
             <motion.img
               src={fanLogo} alt="Fan Logo"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }}
@@ -235,8 +240,7 @@ const Home = () => {
             />
           </div>
 
-          {/* ══ Desktop layout (xl+ : 1280px+) ══
-               CHANGED: was hidden lg:flex — now hidden xl:flex ══ */}
+          {/* Desktop layout (xl+) */}
           <div className="hidden xl:flex max-w-2xl mx-auto text-center flex-col items-center">
             <motion.div
               initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
@@ -244,7 +248,6 @@ const Home = () => {
             >
               <FiShield size={14} /> {t("officialPortal")}
             </motion.div>
-
             <motion.h1
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
@@ -253,7 +256,6 @@ const Home = () => {
             >
               {t("heroTitle")}
             </motion.h1>
-
             <motion.p
               initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
@@ -261,7 +263,6 @@ const Home = () => {
             >
               {t("heroDesc")}
             </motion.p>
-
             <motion.p
               initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               transition={{ delay: 0.25 }}
@@ -269,7 +270,6 @@ const Home = () => {
             >
               {t("heroParagraph")}
             </motion.p>
-
             <motion.div
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
@@ -290,7 +290,7 @@ const Home = () => {
             </motion.div>
           </div>
 
-          {/* ══ Mobile layout (below md : < 768px) — unchanged ══ */}
+          {/* Mobile layout (< md) */}
           <div className="md:hidden max-w-2xl mx-auto text-center flex flex-col items-center px-0 sm:px-8">
             <div className="flex w-full flex-col items-center mb-3">
               <div className="flex items-center justify-between w-full">
@@ -315,18 +315,18 @@ const Home = () => {
                   <FiShield size={9} /> {t("officialPortal")}
                 </motion.div>
                 <motion.img
-  src={fanLogo} alt="Fan Logo"
-  initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-  transition={{ duration: 0.6 }}
-  className="drop-shadow-lg flex-none"
-  style={{
-    width: "clamp(52px, 13vw, 82px)",
-    height: "clamp(62px, 16vw, 102px)",
-    objectFit: "contain",
-    objectPosition: "right top",
-    marginTop: "4px",
-  }}
-/>
+                  src={fanLogo} alt="Fan Logo"
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                  transition={{ duration: 0.6 }}
+                  className="drop-shadow-lg flex-none"
+                  style={{
+                    width: "clamp(52px, 13vw, 82px)",
+                    height: "clamp(62px, 16vw, 102px)",
+                    objectFit: "contain",
+                    objectPosition: "right top",
+                    marginTop: "4px",
+                  }}
+                />
               </div>
               <div className="flex flex-col items-center justify-center text-center w-full mt-2">
                 <motion.h1
@@ -346,7 +346,6 @@ const Home = () => {
                 </motion.h1>
               </div>
             </div>
-
             <motion.p
               initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
@@ -354,7 +353,6 @@ const Home = () => {
             >
               {t("heroDesc")}
             </motion.p>
-
             <motion.p
               initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               transition={{ delay: 0.25 }}
@@ -362,7 +360,6 @@ const Home = () => {
             >
               {t("heroParagraph")}
             </motion.p>
-
             <motion.div
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
@@ -390,7 +387,7 @@ const Home = () => {
       <section className="bg-white border-b border-gray-100 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {stats.map((s, i) => (
+            {statsCards.map((s, i) => (
               <motion.div
                 key={s.label} custom={i}
                 initial="hidden" whileInView="visible"
@@ -445,7 +442,9 @@ const Home = () => {
                   {lang === "ta" ? scheme.descTa : scheme.desc}
                 </p>
                 <a
-                  href="https://www.tn.gov.in" target="_blank" rel="noopener noreferrer"
+                  href={scheme.applyLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-dark px-3 py-1.5 rounded-lg transition-all duration-200 hover:bg-primary-light hover:text-gray-900 hover:shadow-sm"
                   onClick={(e) => e.stopPropagation()}
                 >

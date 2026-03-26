@@ -36,7 +36,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate("/");
+    navigate("/login", { replace: true }); // ✅ fixed
     setMenuOpen(false);
   };
 
@@ -52,7 +52,7 @@ const Navbar = () => {
 
       {/* Top bar */}
       <div className="bg-white text-gray-800 text-xs py-1 px-4 text-center font-medium border-b border-gray-200">
-        🇮🇳 {t("officialPortal")} &nbsp;|&nbsp; {t("tollFree")}
+        🇮🇳 {t("officialPortal")} &nbsp;
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -65,8 +65,7 @@ const Navbar = () => {
                 background: "linear-gradient(135deg, #f3f4f6, #fef3c7)",
               }}
             >
-                              க
-
+              க
             </div>
             <div>
               <p

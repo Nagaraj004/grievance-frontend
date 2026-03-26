@@ -24,7 +24,7 @@ async def lifespan(app: FastAPI):
     print(f" {settings.APP_NAME} v{settings.APP_VERSION} started")
     print(f" Upload dir  : {upload_dir.resolve()}")
     print(f" CORS origins: {settings.origins_list}")
-    print(f"Docs        : http://localhost:8000/docs")
+    print(f" Docs        : http://localhost:8000/docs")
 
     yield
 
@@ -38,7 +38,6 @@ app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     debug=settings.DEBUG,
-    
     description="""
 ## Tamil Nadu Grievance Portal API
 
@@ -46,6 +45,7 @@ app = FastAPI(
 - `POST /api/v1/grievances/` — Submit grievance with optional file attachment
 - `GET /api/v1/grievances/track/{token}` — Track by token
 - `GET /api/v1/grievances/by-mobile/{mobile}` — Find by mobile
+- `GET /api/v1/grievances/stats/public` — Public stats (home page counters)
 - `POST /api/v1/grievances/send-otp` — Send OTP to mobile
 - `POST /api/v1/grievances/verify-otp` — Verify OTP
 
@@ -54,6 +54,7 @@ app = FastAPI(
 - Minister + Admin: `GET /api/v1/grievances/` — View all grievances
 - Minister + Admin: `GET /api/v1/grievances/stats/summary` — Analytics
 - Admin only: `PATCH /api/v1/grievances/{token}` — Update status
+- Admin only: `DELETE /api/v1/grievances/{token}` — Delete grievance
 
 **File Uploads**:
 - Supported formats: PDF, JPG, JPEG, PNG, DOC, DOCX
@@ -68,14 +69,29 @@ To seed demo data, run: `python seed.py`
     lifespan=lifespan,
 )
 
-# ─── Middleware ────────────────────────────────────────────────────────────────
+# ─── CORS Middleware ───────────────────────────────────────────────────────────
+# Merge origins from settings with the guaranteed dev origins so that
+# localhost:5173 (Vite) always works even if missing from .env / config.
+
+_dev_origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+]
+
+# Deduplicate while preserving order
+_all_origins: list[str] = list(
+    dict.fromkeys(settings.origins_list + _dev_origins)
+)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.origins_list,
+    allow_origins=_all_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # ─── Routers ──────────────────────────────────────────────────────────────────

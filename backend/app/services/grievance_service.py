@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session,joinedload
 from sqlalchemy import func
 from app.models.grievance import Grievance, GrievanceStatus
 from app.schemas.grievance import GrievanceCreate, GrievanceUpdate
+from app.models.GrievanceQuery import GrievanceQuery
 
 
 def generate_token() -> str:
@@ -137,3 +138,21 @@ def get_stats(db: Session) -> dict:
         "closed": closed,
         "by_department": by_department,
     }
+
+# Add this method to your grievance_service.py
+
+def delete_grievance(db: Session, token: str) -> None:
+
+    grievance = db.query(Grievance).filter(Grievance.token == token).first()
+    if not grievance:
+        return
+
+    # Delete child rows first using the correct FK column: grievance_token
+    # (NOT token — that's the column name in GrievanceQuery)
+    db.query(GrievanceQuery).filter(GrievanceQuery.grievance_token == token).delete(
+        synchronize_session="fetch"
+    )
+
+    # Delete the parent grievance
+    db.delete(grievance)
+    db.commit()

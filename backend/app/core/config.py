@@ -5,8 +5,6 @@ from typing import List
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# Always resolve .env relative to THIS file's directory
-# So it works regardless of where you run uvicorn from
 BASE_DIR = Path(__file__).resolve().parent.parent.parent  # → backend/
 ENV_FILE = BASE_DIR / ".env.example"
 
@@ -26,21 +24,45 @@ class Settings(BaseSettings):
     DEBUG: bool = False
 
     # ── Database ──────────────────────────────────────────────────────────────
-    DATABASE_URL: str                    # required — must be set in .env
+    DATABASE_URL: str
     DATABASE_SCHEMA: str = "Grievance"
 
     # ── JWT ───────────────────────────────────────────────────────────────────
-    SECRET_KEY: str                      # required — must be set in .env
+    SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
     # ── CORS ──────────────────────────────────────────────────────────────────
+    # Production origins come from .env / environment variable.
+    # Dev origins (localhost) are always appended automatically in origins_list
+    # so you never need to touch .env during local development.
     ALLOWED_ORIGINS: str = "https://grievance.risingsuntech.in"
+
+    # Always-allowed dev origins — merged in at runtime, never in production DB
+    _DEV_ORIGINS: List[str] = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:3000",
+    ]
 
     # ── Derived ───────────────────────────────────────────────────────────────
     @property
     def origins_list(self) -> List[str]:
-        return [o.strip() for o in self.ALLOWED_ORIGINS.split(",") if o.strip()]
+        """
+        Returns deduplicated list of allowed origins.
+        Always includes localhost dev origins so Vite (port 5173) works
+        without any .env changes during development.
+        """
+        from_env = [o.strip() for o in self.ALLOWED_ORIGINS.split(",") if o.strip()]
+        # Merge and deduplicate, preserving order (env origins first)
+        seen = set()
+        result = []
+        for origin in from_env + self._DEV_ORIGINS:
+            if origin not in seen:
+                seen.add(origin)
+                result.append(origin)
+        return result
 
     # ── Validators ────────────────────────────────────────────────────────────
     @field_validator("SECRET_KEY")

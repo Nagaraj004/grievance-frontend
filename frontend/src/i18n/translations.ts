@@ -12,8 +12,8 @@ export const translations = {
     login: "Login",
     logout: "Logout",
     officialPortal: "Namathu Muyarchi.. Karur Valarchi..",
-    tollFree: "Toll Free: 1800-111-555",
-    portalName: "Karur Grievance Portal",
+    tollFree: "",
+    portalName: "Karur District",
     portalTagline: "Makkalai Kaakum Arasu",
 
     // Home
@@ -205,12 +205,12 @@ export const translations = {
     login: "உள்நுழை",
     logout: "வெளியேறு",
     officialPortal: "நமது முயற்சி.. கரூர் வளர்ச்சி..",
-    tollFree: "இலவச அழைப்பு: 1800-111-555",
-    portalName: "கரூர் மக்களின் குறைதீர் தளம்",
+    tollFree: "",
+    portalName: "கரூர் மாவட்டம்",
     portalTagline: "மக்களை காக்கும் அரசு",
 
     // Home
-    heroTitle: "கரூர் மாவட்ட மக்களின் குறைதீர் தளம்.!",
+    heroTitle: "கரூர் மாவட்ட மக்களின் குறைதீர் தளம்",
     heroDesc:
       "கரூர் மக்களின் குறைகளை தீர்க்க உங்கள் சகோதரர் v.செந்தில் பாலாஜி அவர்களால் ஏற்படுத்தப்பட்ட இணையதள புகார்தளம்.",
      heroParagraph:
@@ -241,7 +241,7 @@ export const translations = {
     schemesTitle: "முதலமைச்சரின் திட்டங்கள்",
     schemesSubtitle: "முதல்வரின் முகவரி — தமிழக மக்களுக்கான நலத் திட்டங்கள்",
     viewAllSchemes: "அனைத்து திட்டங்களும்",
-    applyNow: "விண்ணப்பிக்க",
+    applyNow: "தெரிந்துகொள்ள",
 
     // Submit
     fileGrievance: "புகார் பதிவு செய்க",

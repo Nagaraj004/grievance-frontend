@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { FiPhone, FiMail, FiGlobe } from "react-icons/fi";
+import { FiMail, FiGlobe } from "react-icons/fi";
 import { useLang } from "../context/LangContext";
 
 const Footer = () => {
@@ -64,9 +64,6 @@ const Footer = () => {
               {t("contactUs")}
             </p>
             <div className="flex flex-col gap-2 text-sm text-gray-600">
-              <span className="flex items-center gap-2">
-                <FiPhone size={14} /> {t("helpline")}: 1800-111-555
-              </span>
               <span className="flex items-center gap-2">
                 <FiMail size={14} /> grievance@tn.gov.in
               </span>

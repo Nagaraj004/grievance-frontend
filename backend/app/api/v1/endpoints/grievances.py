@@ -27,42 +27,80 @@ ALLOWED_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".doc", ".docx"}
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 
 
+# ─────────────────────────────────────────────
+#  OTP
+# ─────────────────────────────────────────────
+
 @router.post("/send-otp")
 def send_otp(mobile: str = Form(...)):
-    # Validate mobile number
     if not mobile.isdigit() or len(mobile) != 10 or mobile[0] not in "6789":
         raise HTTPException(status_code=400, detail="Invalid mobile number")
 
     otp = generate_otp()
     save_otp(mobile, otp)
-
-    # For development (later replace with SMS service)
     print(f"OTP for {mobile}: {otp}")
-
     return {"message": "OTP sent successfully"}
 
 
 @router.post("/verify-otp")
-def verify_mobile_otp(
-    mobile: str = Form(...),
-    otp: str = Form(...)
-):
-    print("VERIFY INPUT:", mobile, otp)   # 👈 ADD THIS
-
+def verify_mobile_otp(mobile: str = Form(...), otp: str = Form(...)):
+    print("VERIFY INPUT:", mobile, otp)
     if not verify_otp(mobile, otp):
-        print("OTP FAILED")               # 👈 ADD THIS
+        print("OTP FAILED")
         raise HTTPException(status_code=400, detail="Invalid or expired OTP")
-
-    print("OTP SUCCESS")                  # 👈 ADD THIS
+    print("OTP SUCCESS")
     return {"message": "OTP verified"}
 
+
+# ─────────────────────────────────────────────
+#  STATS  (declared before /{token} to avoid
+#          FastAPI matching "stats" as a token)
+# ─────────────────────────────────────────────
+
+@router.get(
+    "/stats/public",
+    response_model=StatsResponse,
+    summary="Get grievance statistics (Public)",
+    description=(
+        "Returns count summary by status. "
+        "No authentication required — used on the public home page."
+    ),
+)
+def get_public_stats(db: Session = Depends(get_db)):
+    """
+    Publicly accessible stats endpoint.
+    Returns the same StatsResponse shape as /stats/summary so the
+    frontend Home page can display live counters without logging in.
+    """
+    return grievance_service.get_stats(db)
+
+
+@router.get(
+    "/stats/summary",
+    response_model=StatsResponse,
+    summary="Get grievance statistics (Minister / Admin only)",
+    description="Returns count summary by status and department.",
+)
+def get_stats(
+    db: Session = Depends(get_db),
+    _: User = Depends(require_minister_or_admin),
+):
+    return grievance_service.get_stats(db)
+
+
+# ─────────────────────────────────────────────
+#  PUBLIC — Submit
+# ─────────────────────────────────────────────
 
 @router.post(
     "/",
     response_model=GrievanceResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Submit a new grievance (Public)",
-    description="Any citizen can submit a grievance with optional file attachment. Returns a unique token to track status.",
+    description=(
+        "Any citizen can submit a grievance with an optional file attachment. "
+        "Returns a unique token to track status."
+    ),
 )
 async def submit_grievance(
     name: str = Form(...),
@@ -73,38 +111,31 @@ async def submit_grievance(
     department: str = Form(...),
     description: str = Form(...),
     attachment: Optional[UploadFile] = File(None),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-
     attachment_url = None
 
-    # File validation
     if attachment and attachment.filename:
         file_ext = Path(attachment.filename).suffix.lower()
-
         if file_ext not in ALLOWED_EXTENSIONS:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"File type not allowed. Allowed types: {', '.join(ALLOWED_EXTENSIONS)}"
+                detail=f"File type not allowed. Allowed types: {', '.join(ALLOWED_EXTENSIONS)}",
             )
 
         content = await attachment.read()
-
         if len(content) > MAX_FILE_SIZE:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="File size exceeds maximum limit of 5MB"
+                detail="File size exceeds maximum limit of 5MB",
             )
 
         unique_filename = f"{uuid.uuid4()}{file_ext}"
         file_path = UPLOAD_DIR / unique_filename
-
         with open(file_path, "wb") as f:
             f.write(content)
-
         attachment_url = f"/uploads/grievances/{unique_filename}"
 
-    # Create grievance payload
     payload = GrievanceCreate(
         name=name,
         mobile=mobile,
@@ -112,11 +143,14 @@ async def submit_grievance(
         address=address,
         constituency=constituency,
         department=department,
-        description=description
+        description=description,
     )
-
     return grievance_service.create_grievance(db, payload, attachment_url)
 
+
+# ─────────────────────────────────────────────
+#  PUBLIC — Track & Recover
+# ─────────────────────────────────────────────
 
 @router.get(
     "/track/{token}",
@@ -150,6 +184,10 @@ def get_by_mobile(mobile: str, db: Session = Depends(get_db)):
     return grievances
 
 
+# ─────────────────────────────────────────────
+#  MINISTER / ADMIN — List
+# ─────────────────────────────────────────────
+
 @router.get(
     "/",
     response_model=GrievanceListResponse,
@@ -167,10 +205,15 @@ def list_grievances(
 ):
     grievances, total = grievance_service.get_all(
         db, skip=skip, limit=limit,
-        status=status, department=department, search=search
+        status=status, department=department, search=search,
     )
     return GrievanceListResponse(total=total, grievances=grievances)
 
+
+# ─────────────────────────────────────────────
+#  ADMIN — Update & Delete  (/{token} routes
+#          kept last so static paths above win)
+# ─────────────────────────────────────────────
 
 @router.patch(
     "/{token}",
@@ -193,14 +236,29 @@ def update_grievance(
     return updated
 
 
-@router.get(
-    "/stats/summary",
-    response_model=StatsResponse,
-    summary="Get grievance statistics (Minister / Admin only)",
-    description="Returns count summary by status and department.",
+@router.delete(
+    "/{token}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a grievance (Admin only)",
+    description="Permanently deletes a grievance record and its uploaded attachment (if any).",
 )
-def get_stats(
+def delete_grievance(
+    token: str,
     db: Session = Depends(get_db),
-    _: User = Depends(require_minister_or_admin),
+    _: User = Depends(require_admin),
 ):
-    return grievance_service.get_stats(db)
+    grievance = grievance_service.get_by_token(db, token)
+    if not grievance:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No grievance found with token: {token}",
+        )
+
+    # Remove uploaded attachment from disk if present
+    if getattr(grievance, "attachment_url", None):
+        file_path = Path(grievance.attachment_url.lstrip("/"))
+        if file_path.exists():
+            file_path.unlink()
+
+    grievance_service.delete_grievance(db, token)
+    # 204 returns no body

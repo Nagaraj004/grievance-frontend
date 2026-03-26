@@ -83,7 +83,7 @@ export const grievanceService = {
       formData.append('attachment', payload.attachment);
     }
 
-    const res = await apiClient.post<any>('/grievances', formData); // ✅ removed trailing slash
+    const res = await apiClient.post<any>('/grievances', formData);
     return adapt(res.data);
   },
 
@@ -109,11 +109,11 @@ export const grievanceService = {
     }
   },
 
-  // ── List all grievances (admin) ─────────────────────────────────────────────
+  // ── List all grievances (minister / admin) ──────────────────────────────────
   async getAllGrievances(params?: GrievanceListParams): Promise<GrievanceListResponse> {
     const res = await apiClient.get<{ grievances: any[]; total: number }>(
-      '/grievances', // ✅ removed trailing slash
-      { params }
+      '/grievances',
+      { params },
     );
     return {
       grievances: res.data.grievances.map(adapt),
@@ -123,10 +123,10 @@ export const grievanceService = {
 
   // ── Update grievance status ─────────────────────────────────────────────────
   async updateGrievanceStatus(
-    token:      string,
-    status:     GrievanceStatus,
+    token:       string,
+    status:      GrievanceStatus,
     assignedTo?: string,
-    remarks?:    string
+    remarks?:    string,
   ): Promise<Grievance> {
     const res = await apiClient.patch<any>(
       `/grievances/${encodeToken(token)}`,
@@ -134,21 +134,32 @@ export const grievanceService = {
         status,
         assigned_to: assignedTo ?? null,
         remarks:     remarks    ?? null,
-      }
+      },
     );
     return adapt(res.data);
   },
 
-  // ── Stats ───────────────────────────────────────────────────────────────────
+  // ── Delete a grievance (admin only) ─────────────────────────────────────────
+  async deleteGrievance(token: string): Promise<void> {
+    await apiClient.delete(`/grievances/${encodeToken(token)}`);
+  },
+
+  // ── Stats — authenticated (minister / admin dashboard) ──────────────────────
   async getStats(): Promise<GrievanceStats> {
     const res = await apiClient.get<GrievanceStats>('/grievances/stats/summary');
+    return res.data;
+  },
+
+  // ── Stats — public (home page, no login required) ───────────────────────────
+  async getPublicStats(): Promise<GrievanceStats> {
+    const res = await apiClient.get<GrievanceStats>('/grievances/stats/public');
     return res.data;
   },
 
   // ── Get queries for a grievance ─────────────────────────────────────────────
   async getQueries(token: string): Promise<GrievanceQuery[]> {
     const res = await apiClient.get<GrievanceQuery[]>(
-      `/grievances/${encodeToken(token)}/queries`
+      `/grievances/${encodeToken(token)}/queries`,
     );
     return res.data;
   },
@@ -157,11 +168,11 @@ export const grievanceService = {
   async createQuery(
     token:   string,
     message: string,
-    sender:  'user' | 'admin'
+    sender:  'user' | 'admin',
   ): Promise<GrievanceQuery> {
     const res = await apiClient.post<GrievanceQuery>(
       `/grievances/${encodeToken(token)}/queries`,
-      { message, sender }
+      { message, sender },
     );
     return res.data;
   },
@@ -184,6 +195,7 @@ export const grievanceService = {
     const res = await apiClient.post<OtpResponse>('/grievances/verify-otp', formData);
     return res.data;
   },
+
 };
 
 export default grievanceService;
