@@ -14,12 +14,14 @@ import ForgotToken from './pages/ForgotToken';
 import MinisterDashboard from './pages/MinisterDashboard';
 import AdminPanel from './pages/AdminPanel';
 import LoginPage from './pages/LoginPage';
+import ScrollToTop from './components/ScrollToTop';
 
+// ✅ y: -8 → page slides in from top, not bottom
 const PageWrapper = ({ children }: { children: React.ReactNode }) => (
   <motion.div
-    initial={{ opacity: 0, y: 8 }}
+    initial={{ opacity: 0, y: -8 }}
     animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -8 }}
+    exit={{ opacity: 0, y: 8 }}
     transition={{ duration: 0.25 }}
   >
     {children}
@@ -28,62 +30,46 @@ const PageWrapper = ({ children }: { children: React.ReactNode }) => (
 
 const AppRoutes = () => {
   const location = useLocation();
-  const { role } = useAuth();   // 👈 ONLY added line
+  const { role } = useAuth();
 
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<PageWrapper><Home /></PageWrapper>} />
-
-        {/* Block admin from these routes */}
-        <Route
-          path="/submit"
-          element={
-            role === "admin"
-              ? <Navigate to="/admin" replace />
-              : <PageWrapper><SubmitGrievance /></PageWrapper>
-          }
-        />
-
-        <Route
-          path="/track"
-          element={
-            role === "admin"
-              ? <Navigate to="/admin" replace />
-              : <PageWrapper><TrackGrievance /></PageWrapper>
-          }
-        />
-
-        <Route
-          path="/forgot-token"
-          element={
-            role === "admin"
-              ? <Navigate to="/admin" replace />
-              : <PageWrapper><ForgotToken /></PageWrapper>
-          }
-        />
-
-        <Route path="/login" element={<PageWrapper><LoginPage /></PageWrapper>} />
-
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute requiredRole="minister">
-              <PageWrapper><MinisterDashboard /></PageWrapper>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <PageWrapper><AdminPanel /></PageWrapper>
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
-    </AnimatePresence>
+    <>
+      <ScrollToTop />
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<PageWrapper><Home /></PageWrapper>} />
+          <Route
+            path="/submit"
+            element={role === "admin" ? <Navigate to="/admin" replace /> : <PageWrapper><SubmitGrievance /></PageWrapper>}
+          />
+          <Route
+            path="/track"
+            element={role === "admin" ? <Navigate to="/admin" replace /> : <PageWrapper><TrackGrievance /></PageWrapper>}
+          />
+          <Route
+            path="/forgot-token"
+            element={role === "admin" ? <Navigate to="/admin" replace /> : <PageWrapper><ForgotToken /></PageWrapper>}
+          />
+          <Route path="/login" element={<PageWrapper><LoginPage /></PageWrapper>} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute requiredRole="minister">
+                <PageWrapper><MinisterDashboard /></PageWrapper>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <PageWrapper><AdminPanel /></PageWrapper>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </AnimatePresence>
+    </>
   );
 };
 

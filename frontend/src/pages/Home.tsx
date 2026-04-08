@@ -15,8 +15,16 @@ import {
   FiExternalLink,
 } from "react-icons/fi";
 import { useLang } from "../context/LangContext";
-import fanLogo from "../utils/now.png";
-import stalinLogo from "../utils/st logo.png";
+
+// ── WebP imports (compressed via Squoosh) ──────────────────────────────────
+import fanLogo    from "../utils/now.webp";
+import stalinLogo from "../utils/st logo.webp";
+
+// Preload both hero logos so the browser fetches them at highest priority
+// before the JS bundle finishes parsing. Drop these two <link> tags into
+// your public/index.html <head> as well for the absolute earliest fetch:
+//   <link rel="preload" as="image" type="image/webp" href="/src/utils/now.webp" />
+//   <link rel="preload" as="image" type="image/webp" href="/src/utils/st-logo.webp" />
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -96,6 +104,48 @@ const schemes = [
   },
 ];
 
+const stepShadows = [
+  {
+    base: "0 4px 16px 0 rgba(99,102,241,0.18)",
+    hover: "0 12px 32px 0 rgba(99,102,241,0.35)",
+    bg: "bg-indigo-50",
+    iconBg: "bg-indigo-100",
+    iconColor: "text-indigo-600",
+    border: "border-indigo-200",
+  },
+  {
+    base: "0 4px 16px 0 rgba(16,185,129,0.18)",
+    hover: "0 12px 32px 0 rgba(16,185,129,0.35)",
+    bg: "bg-emerald-50",
+    iconBg: "bg-emerald-100",
+    iconColor: "text-emerald-600",
+    border: "border-emerald-200",
+  },
+  {
+    base: "0 4px 16px 0 rgba(245,158,11,0.18)",
+    hover: "0 12px 32px 0 rgba(245,158,11,0.35)",
+    bg: "bg-amber-50",
+    iconBg: "bg-amber-100",
+    iconColor: "text-amber-600",
+    border: "border-amber-200",
+  },
+  {
+    base: "0 4px 16px 0 rgba(239,68,68,0.18)",
+    hover: "0 12px 32px 0 rgba(239,68,68,0.35)",
+    bg: "bg-rose-50",
+    iconBg: "bg-rose-100",
+    iconColor: "text-rose-600",
+    border: "border-rose-200",
+  },
+];
+
+// Shared style applied to every logo <img> to prevent layout thrash
+// during Framer Motion animation and hint the compositor layer upfront.
+const logoStyle: React.CSSProperties = {
+  willChange: "transform, opacity",
+  contentVisibility: "auto",
+};
+
 const Home = () => {
   const { t, lang } = useLang();
   const dispatch = useDispatch<AppDispatch>();
@@ -105,7 +155,6 @@ const Home = () => {
     dispatch(fetchPublicStats());
   }, [dispatch]);
 
-  // Shows "0" while loading so counters never appear broken
   const fmt = (val?: number | null) =>
     val != null ? val.toLocaleString("en-IN") : "0";
 
@@ -118,7 +167,6 @@ const Home = () => {
     },
     {
       label: t("resolved"),
-      // resolved + closed matches MinisterDashboard calculation
       value: fmt((stats?.resolved ?? 0) + (stats?.closed ?? 0)),
       icon: FiCheckCircle,
       color: "bg-green-50 text-green-700",
@@ -156,42 +204,67 @@ const Home = () => {
           }}
         />
 
-        {/* Desktop logos (xl+) — absolute positioned */}
+        {/* Desktop logos (xl+) */}
         <motion.img
-          src={stalinLogo} alt="Stalin Logo"
-          initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }}
+          src={stalinLogo}
+          alt="Stalin Logo"
+          // Explicit dimensions prevent layout shift while image loads
+          width={288}
+          height={288}
+          // fetchpriority tells the browser this is critical — fetch it first
+          fetchPriority="high"
+          // decoding="async" frees the main thread; layout is already reserved
+          decoding="async"
+          style={logoStyle}
+          initial={{ opacity: 0, x: -40 }}
+          animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
           className="hidden xl:block absolute left-7 top-0 bottom-0 my-auto
             xl:w-72 xl:h-72 object-contain drop-shadow-lg z-10"
         />
         <motion.img
-          src={fanLogo} alt="Fan Logo"
-          initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }}
+          src={fanLogo}
+          alt="Fan Logo"
+          width={288}
+          height={288}
+          fetchPriority="high"
+          decoding="async"
+          style={logoStyle}
+          initial={{ opacity: 0, x: 40 }}
+          animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
           className="hidden xl:block absolute right-9 top-0 bottom-0 my-auto
             xl:w-72 xl:h-72 object-contain drop-shadow-lg z-10"
         />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-12 md:py-16 xl:py-24 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 md:py-10 xl:py-14 relative">
 
-          {/* Tablet layout (md → xl : 768px – 1279px) */}
+          {/* Tablet layout (md → xl) */}
           <div className="hidden md:flex xl:hidden items-center justify-center w-full gap-4">
             <motion.img
-              src={stalinLogo} alt="Stalin Logo"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              src={stalinLogo}
+              alt="Stalin Logo"
+              width={130}
+              height={150}
+              fetchPriority="high"
+              decoding="async"
+              style={logoStyle}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ duration: 0.6 }}
               className="flex-none object-contain drop-shadow-lg"
-              style={{ width: "130px", height: "150px" }}
             />
             <div className="flex flex-col items-center text-center flex-1 min-w-0">
               <motion.div
-                initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
                 className="inline-flex items-center gap-2 bg-amber-100/70 rounded-full px-4 py-1.5 text-sm mb-3 text-amber-900 whitespace-nowrap"
               >
                 <FiShield size={14} /> {t("officialPortal")}
               </motion.div>
               <motion.h1
-                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
                 className="font-bold mb-2 leading-tight !text-amberBrown-900 whitespace-nowrap"
                 style={{ fontSize: "clamp(0.85rem, 1.6vw, 1.5rem)" }}
@@ -199,21 +272,24 @@ const Home = () => {
                 {t("heroTitle")}
               </motion.h1>
               <motion.p
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 transition={{ delay: 0.2 }}
                 className="text-sm !text-amberBrown-900 mb-3 leading-relaxed text-center"
               >
                 {t("heroDesc")}
               </motion.p>
               <motion.p
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 transition={{ delay: 0.25 }}
                 className="text-sm !text-amberBrown-900 mb-4 font-medium text-center"
               >
                 {t("heroParagraph")}
               </motion.p>
               <motion.div
-                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
                 className="flex flex-row gap-3 justify-center"
               >
@@ -232,24 +308,32 @@ const Home = () => {
               </motion.div>
             </div>
             <motion.img
-              src={fanLogo} alt="Fan Logo"
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              src={fanLogo}
+              alt="Fan Logo"
+              width={130}
+              height={150}
+              fetchPriority="high"
+              decoding="async"
+              style={logoStyle}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ duration: 0.6 }}
               className="flex-none object-contain drop-shadow-lg"
-              style={{ width: "130px", height: "150px" }}
             />
           </div>
 
           {/* Desktop layout (xl+) */}
           <div className="hidden xl:flex max-w-2xl mx-auto text-center flex-col items-center">
             <motion.div
-              initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
               className="inline-flex items-center gap-2 bg-amber-100/70 rounded-full px-4 py-1.5 text-sm mb-5 text-amber-900"
             >
               <FiShield size={14} /> {t("officialPortal")}
             </motion.div>
             <motion.h1
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
               className="font-bold mb-1 leading-tight whitespace-nowrap !text-amberBrown-900"
               style={{ fontSize: "clamp(1rem, 2.4vw, 2.2rem)" }}
@@ -257,21 +341,24 @@ const Home = () => {
               {t("heroTitle")}
             </motion.h1>
             <motion.p
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
               className="text-base !text-amberBrown-900 mb-8 leading-relaxed text-center px-1"
             >
               {t("heroDesc")}
             </motion.p>
             <motion.p
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ delay: 0.25 }}
               className="text-xl !text-amberBrown-900 mb-4 font-medium text-center px-1"
             >
               {t("heroParagraph")}
             </motion.p>
             <motion.div
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
               className="flex flex-col sm:flex-row gap-4 justify-center w-full sm:w-auto"
             >
@@ -295,42 +382,58 @@ const Home = () => {
             <div className="flex w-full flex-col items-center mb-3">
               <div className="flex items-center justify-between w-full">
                 <motion.img
-                  src={stalinLogo} alt="Stalin Logo"
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                  src={stalinLogo}
+                  alt="Stalin Logo"
+                  // clamp upper bound → 70×88; give the browser the max so it
+                  // reserves space and never reflows on load.
+                  width={70}
+                  height={88}
+                  fetchPriority="high"
+                  decoding="async"
+                  style={logoStyle}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   transition={{ duration: 0.6 }}
                   className="drop-shadow-lg flex-none"
-                  style={{
-                    width: "clamp(44px, 11vw, 70px)",
-                    height: "clamp(52px, 14vw, 88px)",
-                    objectFit: "contain",
-                    objectPosition: "left top",
-                    marginTop: "-4px",
+                  // Runtime clamp kept for responsive scaling
+                  // (width/height above just reserves layout space)
+                  onLoad={(e) => {
+                    const el = e.currentTarget;
+                    el.style.width  = "clamp(44px, 11vw, 70px)";
+                    el.style.height = "clamp(52px, 14vw, 88px)";
                   }}
                 />
                 <motion.div
-                  initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
                   className="inline-flex items-center gap-1 bg-amber-100/70 rounded-full px-3 py-1 text-amber-900"
                   style={{ fontSize: "clamp(0.55rem, 2.5vw, 0.75rem)", whiteSpace: "nowrap" }}
                 >
                   <FiShield size={9} /> {t("officialPortal")}
                 </motion.div>
                 <motion.img
-                  src={fanLogo} alt="Fan Logo"
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                  src={fanLogo}
+                  alt="Fan Logo"
+                  width={82}
+                  height={102}
+                  fetchPriority="high"
+                  decoding="async"
+                  style={logoStyle}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   transition={{ duration: 0.6 }}
                   className="drop-shadow-lg flex-none"
-                  style={{
-                    width: "clamp(52px, 13vw, 82px)",
-                    height: "clamp(62px, 16vw, 102px)",
-                    objectFit: "contain",
-                    objectPosition: "right top",
-                    marginTop: "4px",
+                  onLoad={(e) => {
+                    const el = e.currentTarget;
+                    el.style.width  = "clamp(52px, 13vw, 82px)";
+                    el.style.height = "clamp(62px, 16vw, 102px)";
                   }}
                 />
               </div>
               <div className="flex flex-col items-center justify-center text-center w-full mt-2">
                 <motion.h1
-                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
                   className="font-bold leading-tight !text-amberBrown-900 mb-0 w-full"
                   style={{
@@ -347,21 +450,24 @@ const Home = () => {
               </div>
             </div>
             <motion.p
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
               className="text-xs sm:text-sm !text-amberBrown-900 mb-3 sm:mb-6 leading-relaxed text-center px-1"
             >
               {t("heroDesc")}
             </motion.p>
             <motion.p
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ delay: 0.25 }}
               className="text-sm sm:text-base !text-amberBrown-900 mb-4 font-medium text-center px-1"
             >
               {t("heroParagraph")}
             </motion.p>
             <motion.div
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
               className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center w-full sm:w-auto"
             >
@@ -384,14 +490,17 @@ const Home = () => {
       </section>
 
       {/* Stats */}
-      <section className="bg-white border-b border-gray-100 py-8">
+      <section className="bg-white border-b border-gray-100 py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {statsCards.map((s, i) => (
               <motion.div
-                key={s.label} custom={i}
-                initial="hidden" whileInView="visible"
-                viewport={{ once: true }} variants={fadeUp}
+                key={s.label}
+                custom={i}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={fadeUp}
                 className="text-center p-4"
               >
                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-2 ${s.color}`}>
@@ -406,12 +515,14 @@ const Home = () => {
       </section>
 
       {/* Schemes */}
-      <section className="py-16 bg-stone-50">
+      <section className="py-8 bg-stone-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <motion.div
-            initial="hidden" whileInView="visible"
-            viewport={{ once: true }} variants={fadeUp}
-            className="text-center mb-10"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeUp}
+            className="text-center mb-6"
           >
             <div className="inline-flex items-center gap-2 bg-primary-light text-primary-dark text-sm font-semibold px-4 py-1.5 rounded-full mb-3">
               ⭐ முதல்வரின் முகவரி
@@ -420,12 +531,15 @@ const Home = () => {
             <p className="text-gray-500 mt-2 max-w-xl mx-auto">{t("schemesSubtitle")}</p>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {schemes.map((scheme, i) => (
               <motion.div
-                key={scheme.name} custom={i}
-                initial="hidden" whileInView="visible"
-                viewport={{ once: true }} variants={fadeUp}
+                key={scheme.name}
+                custom={i}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={fadeUp}
                 whileHover={{ y: -4, boxShadow: "0 16px 40px rgba(0,0,0,0.1)" }}
                 className={`bg-gradient-to-br ${scheme.color} border ${scheme.border} rounded-2xl p-5 cursor-pointer`}
               >
@@ -455,12 +569,16 @@ const Home = () => {
           </div>
 
           <motion.div
-            initial="hidden" whileInView="visible"
-            viewport={{ once: true }} variants={fadeUp}
-            className="text-center mt-8"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeUp}
+            className="text-center mt-5"
           >
             <a
-              href="https://www.tn.gov.in" target="_blank" rel="noopener noreferrer"
+              href="https://www.tn.gov.in"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-dark px-3 py-1.5 rounded-lg transition-all duration-200 hover:bg-primary-light hover:text-gray-900 hover:shadow-sm"
             >
               {t("viewAllSchemes")} <FiExternalLink size={15} />
@@ -470,12 +588,14 @@ const Home = () => {
       </section>
 
       {/* How it works */}
-      <section className="py-16 bg-white">
+      <section className="py-8 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <motion.div
-            initial="hidden" whileInView="visible"
-            viewport={{ once: true }} variants={fadeUp}
-            className="text-center mb-12"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeUp}
+            className="text-center mb-7"
           >
             <span className="text-primary-dark font-semibold text-sm uppercase tracking-wider">
               {t("simpleProcess")}
@@ -483,22 +603,26 @@ const Home = () => {
             <h2 className="text-3xl font-bold text-gray-800 mt-2">{t("howItWorks")}</h2>
             <p className="text-gray-500 mt-2">{t("stepsDesc")}</p>
           </motion.div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {steps.map((step, i) => (
               <motion.div
-                key={step.step} custom={i}
-                initial="hidden" whileInView="visible"
-                viewport={{ once: true }} variants={fadeUp}
-                className="card relative"
+                key={step.step}
+                custom={i}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={fadeUp}
+                className={`card relative transition-shadow duration-300 border ${stepShadows[i].border} ${stepShadows[i].bg}`}
+                style={{ boxShadow: stepShadows[i].base }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.boxShadow = stepShadows[i].hover)
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.boxShadow = stepShadows[i].base)
+                }
               >
-                <div
-                  className="absolute -top-3 -right-3 w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm shadow"
-                  style={{ background: "linear-gradient(135deg, #1f2937, #fef3c7)" }}
-                >
-                  {step.step}
-                </div>
-                <div className="w-12 h-12 bg-primary-light rounded-2xl flex items-center justify-center mb-4">
-                  <step.icon size={22} className="text-primary-dark" />
+                <div className={`w-12 h-12 ${stepShadows[i].iconBg} rounded-2xl flex items-center justify-center mb-4`}>
+                  <step.icon size={22} className={stepShadows[i].iconColor} />
                 </div>
                 <h3 className="font-bold text-gray-800 mb-2">{step.title}</h3>
                 <p className="text-sm text-gray-500 leading-relaxed">{step.desc}</p>
@@ -509,14 +633,16 @@ const Home = () => {
       </section>
 
       {/* CTA */}
-      <section className="py-16 bg-stone-50">
+      <section className="py-8 bg-stone-50">
         <div className="max-w-3xl mx-auto px-4 text-center">
           <motion.div
-            initial="hidden" whileInView="visible"
-            viewport={{ once: true }} variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeUp}
           >
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">{t("haveGrievance")}</h2>
-            <p className="text-gray-500 mb-8 text-lg">{t("ctaDesc")}</p>
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">{t("haveGrievance")}</h2>
+            <p className="text-gray-500 mb-5 text-lg">{t("ctaDesc")}</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/submit" className="btn-primary text-lg py-4 px-10">
                 {t("fileNow")}

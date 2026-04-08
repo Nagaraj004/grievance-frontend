@@ -1,4 +1,3 @@
-// AdminPanel.tsx
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
@@ -53,9 +52,9 @@ interface EditModalProps {
 
 const EditModal = ({ grievance, onClose, onSave, saving }: EditModalProps) => {
   const { t } = useLang();
-  const [status, setStatus]       = useState<GrievanceStatus>(grievance.status);
+  const [status, setStatus]         = useState<GrievanceStatus>(grievance.status);
   const [assignedTo, setAssignedTo] = useState(grievance.assignedTo ?? "");
-  const [remarks, setRemarks]     = useState(grievance.remarks ?? "");
+  const [remarks, setRemarks]       = useState(grievance.remarks ?? "");
 
   return (
     <motion.div
@@ -136,7 +135,7 @@ interface DeleteModalProps {
 }
 
 const DeleteModal = ({ grievance, onClose, onConfirm, deleting }: DeleteModalProps) => {
-  const { t } = useLang();
+
 
   return (
     <motion.div
@@ -167,7 +166,8 @@ const DeleteModal = ({ grievance, onClose, onConfirm, deleting }: DeleteModalPro
         <div className="p-6 space-y-4">
           <p className="text-gray-700 text-sm leading-relaxed">
             Are you sure you want to permanently delete this grievance? This will remove the
-            record and any attached files. <strong className="text-red-600">This cannot be undone.</strong>
+            record and any attached files.{" "}
+            <strong className="text-red-600">This cannot be undone.</strong>
           </p>
 
           {/* Grievance preview */}
@@ -194,16 +194,19 @@ const DeleteModal = ({ grievance, onClose, onConfirm, deleting }: DeleteModalPro
 
           {/* Actions */}
           <div className="flex gap-3 pt-1">
-            <button onClick={onClose} className="btn-secondary flex-1" disabled={deleting}>
-              {t("cancel")}
-            </button>
+            <button
+                onClick={onClose}
+                disabled={deleting}
+                className="btn-secondary flex-1 flex items-center justify-center h-[42px]"
+              >
+                Cancel
+              </button>
             <button
               onClick={() => onConfirm(grievance.token)}
               disabled={deleting}
-              className="flex-1 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700
-                         text-white font-bold py-2.5 px-4 rounded-2xl text-sm transition-all
-                         duration-200 disabled:opacity-60 disabled:cursor-not-allowed shadow-sm
-                         hover:shadow-md hover:-translate-y-0.5 active:scale-100"
+              className="flex-1 flex items-center justify-center gap-2 bg-red-600
+                        text-white font-bold px-4 rounded-2xl text-sm h-[42px]
+                        disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
             >
               {deleting
                 ? <Loader size="sm" />
@@ -224,13 +227,13 @@ const AdminPanel = () => {
   const { grievances, loading } = useSelector((s: RootState) => s.grievance);
   const { t } = useLang();
 
-  const [editing, setEditing]           = useState<Grievance | null>(null);
-  const [saving, setSaving]             = useState(false);
-  const [deleting, setDeleting]         = useState<Grievance | null>(null);
-  const [deletingToken, setDeletingToken] = useState<string | null>(null);
+  const [editing, setEditing]               = useState<Grievance | null>(null);
+  const [saving, setSaving]                 = useState(false);
+  const [deleting, setDeleting]             = useState<Grievance | null>(null);
+  const [deletingToken, setDeletingToken]   = useState<string | null>(null);
   const [queryGrievance, setQueryGrievance] = useState<Grievance | null>(null);
-  const [search, setSearch]             = useState("");
-  const [statusFilter, setStatusFilter] = useState<GrievanceStatus | "ALL">("ALL");
+  const [search, setSearch]                 = useState("");
+  const [statusFilter, setStatusFilter]     = useState<GrievanceStatus | "ALL">("ALL");
 
   useEffect(() => {
     dispatch(fetchAllGrievances());
@@ -287,14 +290,17 @@ const AdminPanel = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          <div className="relative w-full sm:w-52">
           <select
-            className="input-field !py-2 !text-sm w-full sm:w-52"
+            className="input-field !py-2 !text-sm w-full appearance-none pr-8"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as GrievanceStatus | "ALL")}
           >
-            <option value="ALL">{t("allStatuses")}</option>
+            <option value="ALL">ALL STATUSES</option>
             {ALL_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
+          <FiChevronDown className="absolute right-8 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+        </div>
         </div>
 
         {/* Table */}
@@ -321,17 +327,16 @@ const AdminPanel = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((g, i) => {
+                  {filtered.map((g) => {
                     const sc = STATUS_COLORS[g.status];
                     const isBeingDeleted = deletingToken === g.token;
 
                     return (
-                      <motion.tr
+                      // ✅ Plain <tr> — no Framer Motion on rows
+                      <tr
                         key={g.token}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: isBeingDeleted ? 0.4 : 1 }}
-                        transition={{ delay: i * 0.03 }}
-                        className="border-b border-gray-50 hover:bg-yellow-50 transition-colors"
+                        style={{ opacity: isBeingDeleted ? 0.4 : 1 }}
+                        className="border-b border-gray-50 hover:bg-yellow-50"
                       >
                         <td className="py-3 px-4">
                           <span className="font-mono font-bold text-primary-dark text-xs">
@@ -359,11 +364,12 @@ const AdminPanel = () => {
                         <td className="py-3 px-4 text-xs">
                           {g.attachments && g.attachments.length > 0 ? (
                             g.attachments.map((a, idx) => (
-                              <a
-                                key={idx}
+                              
+                              <a  
+                              key={idx}
                                 href={`${import.meta.env.VITE_API_BASE_URL || "http://localhost:8000"}${a.url}`}
                                 target="_blank" rel="noopener noreferrer"
-                                className="flex items-center gap-1 text-yellow-700 hover:text-yellow-900 hover:underline mb-1 transition-colors"
+                                className="flex items-center gap-1 text-yellow-700 hover:text-yellow-900 hover:underline mb-1"
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <FiPaperclip size={12} /> {a.filename || "Attachment"}
@@ -373,7 +379,7 @@ const AdminPanel = () => {
                             <a
                               href={`${import.meta.env.VITE_API_BASE_URL || "http://localhost:8000"}${g.attachment_url}`}
                               target="_blank" rel="noopener noreferrer"
-                              className="flex items-center gap-1 text-yellow-700 hover:text-yellow-900 hover:underline transition-colors"
+                              className="flex items-center gap-1 text-yellow-700 hover:text-yellow-900 hover:underline"
                               onClick={(e) => e.stopPropagation()}
                             >
                               <FiPaperclip size={12} /> View
@@ -387,31 +393,31 @@ const AdminPanel = () => {
                         <td className="py-3 px-4 text-center">
                           <button
                             onClick={() => setQueryGrievance(g)}
-                            className="flex items-center justify-center gap-1 text-xs text-yellow-800 hover:text-yellow-900 font-semibold transition-colors"
+                            className="flex items-center justify-center gap-1 text-xs text-yellow-800 font-semibold"
                           >
                             <FiMessageCircle size={14} /> View
                           </button>
                         </td>
 
-                        {/* Actions: Edit + Delete */}
+                        {/* ✅ Actions — no hover/transition/transform classes */}
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => setEditing(g)}
-                              className="flex items-center gap-1.5 text-xs bg-primary-light hover:bg-primary text-primary-dark px-3 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap"
+                              className="flex items-center gap-1.5 text-xs bg-primary-light text-primary-dark px-3 py-1.5 rounded-lg font-medium whitespace-nowrap"
                             >
-                              <FiEdit2 size={12} /> {t("edit")}
+                              <FiEdit2 size={12} /> Edit
                             </button>
                             <button
-                              onClick={() => setDeleting(g)}
+                              onClick={(e) => { e.stopPropagation(); setDeleting(g); }}
                               disabled={isBeingDeleted}
-                              className="flex items-center gap-1.5 text-xs bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 px-3 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="flex items-center justify-center gap-1.5 text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded-lg font-medium whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed w-[80px] h-[30px]"
                             >
-                              <FiTrash2 size={12} /> Delete
+                              {isBeingDeleted ? <Loader size="sm" /> : <><FiTrash2 size={12} /> Delete</>}
                             </button>
                           </div>
                         </td>
-                      </motion.tr>
+                      </tr>
                     );
                   })}
 

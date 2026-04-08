@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import { useLang } from "../context/LangContext";
-import { FiLock, FiUser, FiShield } from "react-icons/fi";
+import { FiLock, FiUser, FiShield, FiEye, FiEyeOff } from "react-icons/fi";
 
 const LoginPage = () => {
   const [searchParams] = useSearchParams();
@@ -13,10 +13,11 @@ const LoginPage = () => {
   const { t } = useLang();
   const navigate = useNavigate();
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [username, setUsername]       = useState("");
+  const [password, setPassword]       = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError]             = useState("");
+  const [loading, setLoading]         = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -25,7 +26,6 @@ const LoginPage = () => {
     const result = await login(username, password);
     setLoading(false);
     if (result.ok) {
-      // Navigate based on actual role from API response
       const role = localStorage.getItem("tn_role");
       navigate(role === "admin" ? "/admin" : "/dashboard");
     } else {
@@ -42,8 +42,13 @@ const LoginPage = () => {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
+        {/* Header */}
         <div
-          className={`rounded-t-3xl p-8 text-gray-800 text-center ${isAdmin ? "bg-gradient-to-br from-secondary via-primary-light to-secondary" : "bg-gradient-to-br from-primary-light via-primary to-primary-light"}`}
+          className={`rounded-t-3xl p-8 text-gray-800 text-center ${
+            isAdmin
+              ? "bg-gradient-to-br from-secondary via-primary-light to-secondary"
+              : "bg-gradient-to-br from-primary-light via-primary to-primary-light"
+          }`}
         >
           <div className="w-16 h-16 bg-white/80 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <FiShield size={30} className="text-gray-700" />
@@ -51,13 +56,14 @@ const LoginPage = () => {
           <h1 className="text-2xl font-bold">
             {isAdmin ? t("adminLogin") : t("ministerLogin")}
           </h1>
-          <p className="text-gray-600 text-sm mt-1">
-            Karur Grievance Portal
-          </p>
+          <p className="text-gray-600 text-sm mt-1">Karur Grievance Portal</p>
         </div>
 
+        {/* Form */}
         <div className="bg-white rounded-b-3xl shadow-xl p-8 space-y-5">
           <form onSubmit={handleSubmit} className="space-y-4">
+
+            {/* Username */}
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-semibold text-gray-700">
                 {t("username")}
@@ -76,6 +82,8 @@ const LoginPage = () => {
                 />
               </div>
             </div>
+
+            {/* Password */}
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-semibold text-gray-700">
                 {t("password")}
@@ -86,16 +94,24 @@ const LoginPage = () => {
                   size={16}
                 />
                 <input
-                  type="password"
-                  className="input-field pl-9"
+                  type={showPassword ? "text" : "password"}
+                  className="input-field pl-9 pr-9"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                </button>
               </div>
             </div>
 
+            {/* Error */}
             {error && (
               <motion.p
                 initial={{ opacity: 0 }}
@@ -106,10 +122,11 @@ const LoginPage = () => {
               </motion.p>
             )}
 
+            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-xl text-gray-900 font-bold text-base transition-all hover:opacity-90 active:scale-95 shadow-md"
+              className="w-full py-3.5 rounded-xl text-gray-900 font-bold text-base transition-all hover:opacity-90 active:scale-95 shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
               style={{
                 background: isAdmin
                   ? "linear-gradient(135deg, #fcd34d, #f59e0b)"
@@ -120,8 +137,7 @@ const LoginPage = () => {
             </button>
           </form>
 
-          
-
+          {/* Switch role link */}
           <p className="text-center text-sm text-gray-500">
             {isAdmin ? (
               <a

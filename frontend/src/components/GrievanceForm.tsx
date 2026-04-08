@@ -1,4 +1,4 @@
-import { useState, FormEvent, useRef } from "react";
+import { useState, FormEvent, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../store/store";
@@ -10,6 +10,7 @@ import { Department, SubmitGrievancePayload } from "../types/grievance";
 import Loader from "./Loader";
 import {
   FiCheck,
+  FiChevronDown,
   FiCopy,
   FiDownload,
   FiPrinter,
@@ -76,6 +77,13 @@ const GrievanceForm = () => {
   const [copied,       setCopied]       = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // ── Scroll to top on success ─────────────────────────────────────────────────
+  useEffect(() => {
+    if (lastSubmitted) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [lastSubmitted]);
 
   // ── Camera helpers ──────────────────────────────────────────────────────────
   const startCamera = async () => {
@@ -199,10 +207,6 @@ const GrievanceForm = () => {
   };
 
   // ── PDF DOWNLOAD ─────────────────────────────────────────────────────────────
-  // Header is drawn on an off-screen canvas so Tamil text is rendered by the
-  // browser (which supports Tamil fonts) and then embedded as a PNG image.
-  // jsPDF's built-in fonts cannot render Tamil script natively.
-  // ─────────────────────────────────────────────────────────────────────────────
   const handleDownloadPDF = () => {
     if (!lastSubmitted) return;
 
@@ -211,29 +215,26 @@ const GrievanceForm = () => {
       unit: "mm",
       format: "a4",
     });
-    const pageWidth = doc.internal.pageSize.getWidth(); // 210 mm
+    const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 16;
     let yPos = 0;
 
-    // ── STEP 1: Draw homepage header on an off-screen canvas ──────────────────
-    const SCALE       = 3;           // 3× for retina-sharp output
-    const A4_PX_W     = 794 * SCALE; // A4 at 96 dpi × scale
-    const HEADER_PX_H = 160 * SCALE; // header height (no images, no buttons)
+    const SCALE       = 3;
+    const A4_PX_W     = 794 * SCALE;
+    const HEADER_PX_H = 160 * SCALE;
 
     const hCanvas  = document.createElement("canvas");
     hCanvas.width  = A4_PX_W;
     hCanvas.height = HEADER_PX_H;
     const ctx      = hCanvas.getContext("2d")!;
 
-    // ① Golden gradient — matches homepage gradient-header
     const grad = ctx.createLinearGradient(0, 0, A4_PX_W, HEADER_PX_H);
-    grad.addColorStop(0,    "#fbbf24"); // amber-400
-    grad.addColorStop(0.45, "#fcd34d"); // amber-300 bright centre
-    grad.addColorStop(1,    "#f59e0b"); // amber-500
+    grad.addColorStop(0,    "#fbbf24");
+    grad.addColorStop(0.45, "#fcd34d");
+    grad.addColorStop(1,    "#f59e0b");
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, A4_PX_W, HEADER_PX_H);
 
-    // ② Subtle dot pattern overlay — mirrors CSS radial-gradient dots
     ctx.fillStyle = "rgba(255,255,255,0.09)";
     for (let x = 0; x < A4_PX_W; x += 50 * SCALE) {
       for (let y = 0; y < HEADER_PX_H; y += 50 * SCALE) {
@@ -243,7 +244,6 @@ const GrievanceForm = () => {
       }
     }
 
-    // ③ Shield badge pill — top centre
     const badgeText  = "🛡  நமது முயற்சி.. கரூர் வளர்ச்சி..";
     ctx.font         = `${13 * SCALE}px 'Noto Sans Tamil', 'Latha', Arial, sans-serif`;
     const badgeTextW = ctx.measureText(badgeText).width;
@@ -253,7 +253,7 @@ const GrievanceForm = () => {
     const pillY      = 15 * SCALE;
     ctx.fillStyle    = "rgba(251,243,199,0.80)";
     ctx.beginPath();
-    // @ts-ignore — roundRect is available in all modern browsers
+    // @ts-ignore
     ctx.roundRect(pillX, pillY, pillW, pillH, 12 * SCALE);
     ctx.fill();
     ctx.fillStyle    = "#92400e";
@@ -261,18 +261,16 @@ const GrievanceForm = () => {
     ctx.textBaseline = "middle";
     ctx.fillText(badgeText, A4_PX_W / 2, pillY + pillH / 2);
 
-    // ④ Main Tamil heading
     ctx.fillStyle    = "#78350f";
     ctx.textAlign    = "center";
     ctx.textBaseline = "alphabetic";
     ctx.font = `bold ${28 * SCALE}px 'Noto Sans Tamil', 'Latha', Arial, sans-serif`;
     ctx.fillText(
-      "கரூர் மாவட்ட மக்களின் குறைதீர் தளம்.!",
+      "கரூர் மாவட்ட மக்களின் குறைதீர் தளம்",
       A4_PX_W / 2,
       72 * SCALE
     );
 
-    // ⑤ Description — 2 lines (heroDesc)
     ctx.fillStyle = "#92400e";
     ctx.font = `${12 * SCALE}px 'Noto Sans Tamil', 'Latha', Arial, sans-serif`;
     ctx.fillText(
@@ -286,7 +284,6 @@ const GrievanceForm = () => {
       118 * SCALE
     );
 
-    // ⑥ Tagline — heroParagraph
     ctx.fillStyle = "#78350f";
     ctx.font = `500 ${14 * SCALE}px 'Noto Sans Tamil', 'Latha', Arial, sans-serif`;
     ctx.fillText(
@@ -295,28 +292,24 @@ const GrievanceForm = () => {
       145 * SCALE
     );
 
-    // ── STEP 2: Embed canvas header into PDF at full A4 width ─────────────────
     const headerDataUrl = hCanvas.toDataURL("image/png");
-    const headerMM      = (HEADER_PX_H / SCALE / 96) * 25.4; // px → mm
+    const headerMM      = (HEADER_PX_H / SCALE / 96) * 25.4;
     doc.addImage(headerDataUrl, "PNG", 0, 0, pageWidth, headerMM);
     yPos = headerMM + 8;
 
-    // ── TOKEN BOX — yellow / amber theme ──────────────────────────────────────
-    doc.setDrawColor(217, 119, 6);   // amber-600 border
+    doc.setDrawColor(217, 119, 6);
     doc.setLineWidth(1);
-    doc.setFillColor(254, 243, 199); // amber-100 fill
+    doc.setFillColor(254, 243, 199);
     doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 34, 4, 4, "FD");
 
-    // Label
-    doc.setTextColor(146, 64, 14);   // amber-900
+    doc.setTextColor(146, 64, 14);
     doc.setFontSize(9);
     doc.setFont("helvetica", "bold");
     doc.text("YOUR GRIEVANCE TOKEN", pageWidth / 2, yPos + 10, {
       align: "center",
     });
 
-    // Token value
-    doc.setTextColor(120, 53, 15);   // amber-950
+    doc.setTextColor(120, 53, 15);
     doc.setFontSize(20);
     doc.setFont("courier", "bold");
     doc.text(lastSubmitted.token, pageWidth / 2, yPos + 25, {
@@ -324,8 +317,6 @@ const GrievanceForm = () => {
     });
     yPos += 42;
 
-    // ── GRIEVANCE DETAILS ──────────────────────────────────────────────────────
-    // Section heading bar
     doc.setFillColor(254, 243, 199);
     doc.setDrawColor(217, 119, 6);
     doc.setLineWidth(0.6);
@@ -347,7 +338,6 @@ const GrievanceForm = () => {
       ["Submitted",    new Date(lastSubmitted.createdAt).toLocaleString()],
     ];
 
-    // Each row: padded card with alternating background
     details.forEach(([label, value], index) => {
       const isEven  = index % 2 === 0;
       const rowBg   = isEven ? [255, 255, 255] : [249, 250, 251];
@@ -360,18 +350,15 @@ const GrievanceForm = () => {
       doc.setLineWidth(0.3);
       doc.rect(margin, yPos, pageWidth - 2 * margin, rowH, "FD");
 
-      // Label
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8.5);
       doc.setTextColor(75, 85, 99);
       doc.text(label, margin + 4, yPos + 7);
 
-      // Colon
       doc.setFont("helvetica", "normal");
       doc.setTextColor(156, 163, 175);
       doc.text(":", margin + 38, yPos + 7);
 
-      // Value
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8.5);
       doc.setTextColor(31, 41, 55);
@@ -380,7 +367,6 @@ const GrievanceForm = () => {
       yPos += rowH;
     });
 
-    // Description — full card below rows
     yPos += 3;
     const descLines = doc.splitTextToSize(
       lastSubmitted.description,
@@ -408,7 +394,6 @@ const GrievanceForm = () => {
 
     yPos += descBoxH + 8;
 
-    // ── WARNING BOX ────────────────────────────────────────────────────────────
     doc.setFillColor(254, 243, 199);
     doc.setDrawColor(245, 158, 11);
     doc.setLineWidth(1.5);
@@ -425,7 +410,6 @@ const GrievanceForm = () => {
     );
     yPos += 24;
 
-    // ── FOOTER — rendered via canvas so Tamil text displays correctly ──────────
     const footerCanvas  = document.createElement("canvas");
     const F_SCALE       = 3;
     footerCanvas.width  = A4_PX_W;
@@ -435,7 +419,6 @@ const GrievanceForm = () => {
     fCtx.fillStyle = "#ffffff";
     fCtx.fillRect(0, 0, footerCanvas.width, footerCanvas.height);
 
-    // Divider line
     fCtx.strokeStyle = "#e5e7eb";
     fCtx.lineWidth   = 1 * F_SCALE;
     fCtx.beginPath();
@@ -443,7 +426,6 @@ const GrievanceForm = () => {
     fCtx.lineTo(footerCanvas.width, 2 * F_SCALE);
     fCtx.stroke();
 
-    // Portal name line (Tamil rendered by browser)
     fCtx.fillStyle    = "#9ca3af";
     fCtx.textAlign    = "center";
     fCtx.textBaseline = "middle";
@@ -454,7 +436,6 @@ const GrievanceForm = () => {
       12 * F_SCALE
     );
 
-    // Generated date
     fCtx.font = `${8 * F_SCALE}px Arial, sans-serif`;
     fCtx.fillText(
       `Generated on ${new Date().toLocaleString()}`,
@@ -468,7 +449,6 @@ const GrievanceForm = () => {
 
     doc.save(`grievance_${lastSubmitted.token}.pdf`);
   };
-  // ─────────────────────────────────────────────────────────────────────────────
 
   const handlePrint = () => {
     if (!lastSubmitted) return;
@@ -529,22 +509,17 @@ const GrievanceForm = () => {
         </style>
       </head>
       <body>
-
-        <!-- HEADER -->
         <div style="
           background: linear-gradient(135deg, #fbbf24 0%, #fcd34d 50%, #f59e0b 100%);
           padding: 28px 24px 24px;
           text-align: center;
           position: relative;
         ">
-          <!-- Dot pattern overlay -->
           <div style="
             position: absolute; inset: 0;
             background-image: radial-gradient(circle, rgba(255,255,255,0.12) 1px, transparent 1px);
             background-size: 28px 28px;
           "></div>
-
-          <!-- Badge pill -->
           <div style="
             display: inline-block;
             background: rgba(251,243,199,0.80);
@@ -555,31 +530,23 @@ const GrievanceForm = () => {
             margin-bottom: 12px;
             position: relative;
           ">🛡&nbsp; நமது முயற்சி.. கரூர் வளர்ச்சி..</div>
-
-          <!-- Main heading -->
           <h1 style="
             font-size: 26px;
             font-weight: 800;
             color: #78350f;
             margin-bottom: 8px;
             position: relative;
-          ">கரூர் மாவட்ட மக்களின் குறைதீர் தளம்.!</h1>
-
-          <!-- Description -->
+          ">கரூர் மாவட்ட மக்களின் குறைதீர் தளம்</h1>
           <p style="font-size: 13px; color: #92400e; margin-bottom: 4px; position: relative;">
             கரூர் மக்களின் குறைகளை தீர்க்க உங்கள் சகோதரர் V.செந்தில் பாலாஜி
           </p>
           <p style="font-size: 13px; color: #92400e; margin-bottom: 10px; position: relative;">
             அவர்களால் ஏற்படுத்தப்பட்ட இணையதள புகார்தளம்.
           </p>
-
-          <!-- Tagline -->
           <p style="font-size: 14px; font-weight: 600; color: #78350f; position: relative;">
             உங்களுக்காக உங்களுடன் எப்போதும் உறுதுணையாக இருப்போம்.
           </p>
         </div>
-
-        <!-- TOKEN BOX -->
         <div style="
           margin: 20px 24px 0;
           background: #fef3c7;
@@ -603,8 +570,6 @@ const GrievanceForm = () => {
             letter-spacing: 4px;
           ">${lastSubmitted.token}</p>
         </div>
-
-        <!-- DETAILS TABLE -->
         <div style="margin: 18px 24px 0;">
           <div style="
             background: #fef3c7;
@@ -620,8 +585,6 @@ const GrievanceForm = () => {
             ${rowsHtml}
           </table>
         </div>
-
-        <!-- WARNING BOX -->
         <div style="
           margin: 18px 24px 0;
           background: #fef3c7;
@@ -634,8 +597,6 @@ const GrievanceForm = () => {
           <strong>Important:</strong>
           Save this token number. You will need it to track your grievance status at any time.
         </div>
-
-        <!-- FOOTER -->
         <div style="
           margin: 20px 24px 24px;
           border-top: 1px solid #e5e7eb;
@@ -647,8 +608,6 @@ const GrievanceForm = () => {
           <p>Karur Public Grievance Portal &nbsp;|&nbsp; கரூர் மக்களின் குறைதீர் தளம்</p>
           <p style="margin-top: 3px;">Generated on ${new Date().toLocaleString()}</p>
         </div>
-
-        <!-- Auto-trigger print -->
         <script>
           window.onload = function() {
             window.print();
@@ -780,20 +739,23 @@ const GrievanceForm = () => {
           {/* Constituency */}
           <div className="flex flex-col gap-1.5">
             <label>{t("constituency")}*</label>
-            <select
-              className={`input-field ${errors.constituency ? "border-primary-dark" : ""}`}
-              value={form.constituency}
-              onChange={(e) =>
-                setForm({ ...form, constituency: e.target.value })
-              }
-            >
-              <option value="">{t("selectConstituency")}</option>
-              {CONSTITUENCIES.map((c) => (
-                <option key={c.en} value={c.en}>
-                  {lang === "ta" ? c.ta : c.en}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                className={`input-field appearance-none pr-8 ${errors.constituency ? "border-primary-dark" : ""}`}
+                value={form.constituency}
+                onChange={(e) =>
+                  setForm({ ...form, constituency: e.target.value })
+                }
+              >
+                <option value="">{t("selectConstituency")}</option>
+                {CONSTITUENCIES.map((c) => (
+                  <option key={c.en} value={c.en}>
+                    {lang === "ta" ? c.ta : c.en}
+                  </option>
+                ))}
+              </select>
+              <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            </div>
             {errors.constituency && (
               <p className="text-primary-dark text-xs">
                 {errors.constituency}
@@ -822,19 +784,22 @@ const GrievanceForm = () => {
         {/* Department */}
         <div className="flex flex-col gap-1.5">
           <label>{t("department")}</label>
-          <select
-            className="input-field"
-            value={form.department}
-            onChange={(e) =>
-              setForm({ ...form, department: e.target.value as Department })
-            }
-          >
-            {DEPARTMENTS.map((d) => (
-              <option key={d.en} value={d.en}>
-                {lang === "ta" ? d.ta : d.en}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              className="input-field appearance-none pr-8"
+              value={form.department}
+              onChange={(e) =>
+                setForm({ ...form, department: e.target.value as Department })
+              }
+            >
+              {DEPARTMENTS.map((d) => (
+                <option key={d.en} value={d.en}>
+                  {lang === "ta" ? d.ta : d.en}
+                </option>
+              ))}
+            </select>
+            <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          </div>
         </div>
 
         {/* Description */}
